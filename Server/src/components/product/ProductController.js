@@ -6,8 +6,15 @@ const addProduct = async (
         return await productService.addProduct(
             name, price, quantity
         );
-    } catch (err) {
-        console.log('addProduct error(Controller): ' + err);;
+    } catch (error) {
+        console.log('addProduct error(Controller): ' + error);
     }
 };
-module.exports = {addProduct}
+const getAllProduct = async () => {
+    try {
+        return await productService.getAllProduct()
+    } catch (error) {
+        console.log('getAllProduct error(Controller): ' + err);  
+    }
+}
+module.exports = {addProduct, getAllProduct}

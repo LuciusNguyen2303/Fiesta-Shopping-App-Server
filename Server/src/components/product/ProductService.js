@@ -13,5 +13,12 @@ const addProduct = async (
         return false;
     }
 }
-module.exports = {addProduct}
+const getAllProduct = async() => {
+    try {
+        return await productModel.find({});
+    } catch (error) {
+        console.log('getAllProduct Error(Service): ' + error);
+    }
+}
+module.exports = {addProduct, getAllProduct}
 
