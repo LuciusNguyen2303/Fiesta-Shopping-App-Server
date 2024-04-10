@@ -17,4 +17,25 @@ const getAllProduct = async () => {
         console.log('getAllProduct error(Controller): ' + err);  
     }
 }
-module.exports = {addProduct, getAllProduct}
+const updateProduct = async (productID, updateFields) => {
+    try {
+        return await productService.updateProduct(productID, updateFields)
+    } catch (error) {
+        console.log('updateProduct Error(Controller): ' + error);
+    }
+}
+const getProductByID = async (productID) => {
+    try {
+        return await productService.getProductByID(productID)
+    } catch (error) {
+        console.log('getProductByID Error(Controller): ' + error);
+    }
+}
+const searchProducts = async (searchFileds) => {
+    try {
+        return await productService.searchProducts(searchFileds)
+    } catch (error) {
+        console.log('getProductByID Error(Controller): ' + error);
+    }
+}
+module.exports = {addProduct, getAllProduct, updateProduct, getProductByID, searchProducts}
