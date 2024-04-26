@@ -1,5 +1,4 @@
 const jwt = require('jsonwebtoken');
-const {admin} = require('./Firebase/FirebaseConfig')
 require('dotenv').config()
 const authenticateToken = (req, res, next) => {
     const authorizationHeader = req.headers['authorization'];
