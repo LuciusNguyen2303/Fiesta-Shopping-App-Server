@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const userController = require('../../src/components/user/UserController')
 const { addUser_Validation } = require('../../src/middleware/userValidation');
-const { authenticateToken } = require('../../src/middleware/jwtValidation')
+const { authenticateToken, authenticateTokenGG } = require('../../src/middleware/jwtValidation')
 router.post('/addUser', [addUser_Validation], async (req, res, next) => {
     try {
         const { name, userName, password, gender } = req.body;
@@ -14,7 +14,9 @@ router.post('/addUser', [addUser_Validation], async (req, res, next) => {
         return res.status(500).json({ result: false, message: 'addUser Error(Api): ' + error })
     }
 })
-router.post('/login', [authenticateToken],async (req, res, next) => {
+
+// http://localhost:3000/api/userApi/login
+router.post('/login', [authenticateTokenGG],async (req, res, next) => {
     try {
         const { userName, password } = req.body;
         const response = await userController.signIn(userName, password);
