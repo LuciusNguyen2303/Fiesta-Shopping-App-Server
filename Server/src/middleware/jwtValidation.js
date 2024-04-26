@@ -1,5 +1,8 @@
+const { OAuth2Client } = require('google-auth-library');
 const jwt = require('jsonwebtoken');
+const { client_id } = require('./GoogleAuth/googleAuthVariables');
 require('dotenv').config()
+
 const authenticateToken = (req, res, next) => {
     const authorizationHeader = req.headers['authorization'];
     if (authorizationHeader) {
@@ -14,7 +17,7 @@ const authenticateToken = (req, res, next) => {
 
     const token = authorizationHeader.split(' ')[1];
     if (!token) {
-        console.log('Token is null'); 
+        console.log('Token is null');
         return res.sendStatus(401)
     } else {
         console.log('token: ' + token);
@@ -28,7 +31,7 @@ const authenticateToken = (req, res, next) => {
         next();
     });
 }
-const authenticateTokenGG =  async (req, res, next) => {
+const authenticateTokenGG = async (req, res, next) => {
     const authorizationHeader = req.headers['authorization'];
     if (authorizationHeader) {
         if (authorizationHeader.startsWith('Bearer ')) {
@@ -41,22 +44,30 @@ const authenticateTokenGG =  async (req, res, next) => {
     }
 
     const token = authorizationHeader.split(' ')[1];
-    
+
     if (!token) {
-        console.log('Token is null'); 
-        return res.sendStatus(401)
+        console.log('Token is null');
+        next();
     } else {
         console.log('token: ' + token);
     }
-  const result= await admin.auth().verifyIdToken(token).then((decodedToken) => {
-    console.log(decodedToken.exp,decodedToken.auth_time,decodedToken.email);
+    const client = new OAuth2Client(client_id);
+
+    (async () => {
+        const ticket = await client.verifyIdToken({
+            idToken: token,
+            audience: [
+                client_id
+            ],
+        });
+
+        const payload = ticket.getPayload();
+         //  GOOD! idToken verification successful!
+        console.log(payload);
+    })().catch(error => {
+        const errorMessage = error.toString().split(":");
+console.log("VERIFYING GOOGLE TOKENS ERRORS: " + errorMessage[1]);
+    });
     next();
-    // ...
-  })
-  .catch((error) => {
-    // Handle error
-    console.log(error)
-  })
-  next();
 }
-module.exports = { authenticateToken,authenticateTokenGG };
+module.exports = { authenticateToken, authenticateTokenGG };
