@@ -18,25 +18,33 @@ const addUser = async (name, userName, password, gender) => {
 }
 const signIn = async (userName, password) => {
     try {
-        const user = await userModel.findOne({ userName: userName })
-        const userID = user._id.toString();
-        if (user) {
-            const isPasswordValid = await bcrypt.compare(password, user.password)
+        const finduser = await userModel.findOne({ userName: userName })
+        if (finduser) {
+            const isPasswordValid = await bcrypt.compare(password, finduser.password)
             if (!isPasswordValid) {
-                throw new Error('Password is incorrect!')
+                console.log('Password is incorrect!');
+                return false;
             }
         } else {
-            console.log('Username doesnt exist!');
+            console.log('Username doesnt exists!');
+            return false
         }
         const token = jwt.sign(
-            {
-                id: userID,
-                userName: userName,
-                password: password
-            },
-            process.env.ACCESS_TOKEN_SECRET,
-            { expiresIn: '2m' });
-        return token;
+            { userId: finduser._id }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '2m' });
+        const refreshToken = jwt.sign(
+            { userId: finduser._id }, process.env.ACCESS_REFRESH_TOKEN_SECRET, { expiresIn: '2d' });
+        return {
+            token,
+            refreshToken,
+            user: {
+                userName: finduser.userName,
+                name: finduser.name,
+                gender: finduser.gender,
+                address: finduser.address, 
+                phoneNumber: finduser.phoneNumber,
+                avatar: finduser.avatar
+            }
+        };
     } catch (error) {
         console.log('Login Error(Service): ' + error);
     }
