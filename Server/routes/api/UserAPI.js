@@ -14,12 +14,17 @@ router.post('/addUser', [addUser_Validation], async (req, res, next) => {
         return res.status(500).json({ result: false, message: 'addUser Error(Api): ' + error })
     }
 })
-router.post('/login', [authenticateToken],async (req, res, next) => {
+router.post('/login',async (req, res, next) => {
     try {
         const { userName, password } = req.body;
         const response = await userController.signIn(userName, password);
         return response ?
-            res.status(200).json({ result: true, message: 'Login successfully', token: response }) :
+            res.status(200).cookie('refreshToken', response.refreshToken, {
+                httpOnly: true,
+                secure: false,
+                sameSite: "strict"
+            })
+            .json({ result: true, message: 'Login successfully', data: response })  :
             res.status(400).json({ result: false, message: 'Login failed' })
     } catch (error) {
         return res.status(500).json({ result: false, message: 'addUser Error(Api): ' + error })
