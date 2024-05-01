@@ -14,7 +14,10 @@ router.post('/addUser', [addUser_Validation], async (req, res, next) => {
         return res.status(500).json({ result: false, message: 'addUser Error(Api): ' + error })
     }
 })
-router.post('/login',async (req, res, next) => {
+
+
+// http://localhost:3000/api/userApi/login
+router.post('/login', [authenticateToken],async (req, res, next) => {
     try {
         const { userName, password } = req.body;
         const response = await userController.signIn(userName, password);
