@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "274466920945",
+    "project_id": "fiesta-shopping",
+    "storage_bucket": "fiesta-shopping.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:274466920945:android:c9bcdf2b0e1db005828c50",
+        "android_client_info": {
+          "package_name": "com.awesomeproject"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "274466920945-ge2mpr38s6q35l1eci4gj7mulb3r1trj.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.awesomeproject",
+            "certificate_hash": "a50cceae1f758ccfa8ee94044a69fb1ac78eb302"
+          }
+        },
+        {
+          "client_id": "274466920945-i7nu1uis3qm7k8kpggme5u16t9kc5ltf.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCzQIkRglx-KfEs6NVAlo_UF0FO9Nazba0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "274466920945-i7nu1uis3qm7k8kpggme5u16t9kc5ltf.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
