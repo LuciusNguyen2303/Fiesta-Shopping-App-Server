@@ -5,8 +5,18 @@ const userSchema = new Schema({
     gender: {type: String},
     phoneNumber: {type: String, default: ""},
     address: {type: String, default: ""},
-    userName: {type: String},
+    userName: {type: String, unique: true},
     password: {type: String},
-    avatar: {type: String, default: ""}
+    avatar: {type: String, default: ""},
+    isLock:{type:Boolean,default:false},
+    isHidden:{type:Boolean,default:false},
+    role:{type:String, default:'Customer',enum : ['Admin','Customer',"Staff","GrantedPermissions"]}
 })
+ /*
+    role: 
+    1- Admin - Shop Owner
+    3- Customer
+        
+ */
+
 module.exports = mongoose.models.users || mongoose.model('users', userSchema)
