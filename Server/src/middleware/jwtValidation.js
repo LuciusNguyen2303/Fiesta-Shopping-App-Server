@@ -62,11 +62,11 @@ const authenticateTokenGG = async (req, res, next) => {
         });
 
         const payload = ticket.getPayload();
-         //  GOOD! idToken verification successful!
+        //  GOOD! idToken verification successful!
         console.log(payload);
     })().catch(error => {
         const errorMessage = error.toString().split(":");
-console.log("VERIFYING GOOGLE TOKENS ERRORS: " + errorMessage[1]);
+        console.log("VERIFYING GOOGLE TOKENS ERRORS: " + errorMessage[1]);
     });
     next();
 }
