@@ -23,7 +23,31 @@ const variations = new Schema({
 })
 
 const productSchema = new Schema({
-    category: { type: ObjectId, required: true, ref: 'categories' },
+    category: {
+        type: Map,
+        of: {
+            type:
+            {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: "categories"
+            }
+
+        }
+    },
+    /* 
+    json của category này là dạng 
+    {
+        Đây là json cha...
+         category:{
+            "mainCategory":"Một objectId",
+            "subCategory":"Một objectId",
+        }
+
+    }
+    
+    
+    
+    */
     image: { type: [String] },
     name: { type: String, required: true },
     price: { type: Number, required: true },

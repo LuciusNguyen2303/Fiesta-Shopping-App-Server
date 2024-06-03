@@ -10,7 +10,8 @@ const userSchema = new Schema({
     avatar: {type: String, default: ""},
     isLock:{type:Boolean,default:false},
     isHidden:{type:Boolean,default:false},
-    role:{type:String, default:'Customer',enum : ['Admin','Customer',"Staff","GrantedPermissions"]}
+    refreshToken:{type:String,default:"",index:true},
+    role:{type:String, default:'Customer',index:true,enum : ['Admin','Customer',"Staff","GrantedPermissions"]}
 })
  /*
     role: 
