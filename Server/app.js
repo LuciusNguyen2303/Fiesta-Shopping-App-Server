@@ -11,6 +11,7 @@ var userRouter = require('./routes/api/UserAPI')
 var categoryRouter = require('./routes/api/CategoryAPI')
 var cartRouter = require('./routes/api/CartApi')
 var orderRouter = require('./routes/api/orderApi')
+var reviewRouter = require('./routes/api/ReviewApi')
 var app = express();
 
 // mongo DB connect
@@ -32,6 +33,7 @@ app.use('/api/userApi', userRouter)
 app.use('/api/category', categoryRouter)
 app.use('/api/cart', cartRouter)
 app.use('/api/order', orderRouter)
+app.use('/api/reviews', reviewRouter)
 
 
 // catch 404 and forward to error handler
