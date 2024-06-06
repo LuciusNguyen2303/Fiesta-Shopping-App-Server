@@ -6,6 +6,7 @@ const CustomError = require('../../HandleError')
 const { IdTokenClient } = require('google-auth-library')
 const LIMIT = require('../public method/constant')
 const { createAccessToken, createRefreshToken, verifyRefreshToken } = require('../public method/jwtMethods')
+const { uploadImage } = require('../public method/ImageMethod/ImageMethods')
 const addUser = async (name, userName, password, gender) => {
     try {
         const checkUser = await userModel.findOne({ userName: userName })
@@ -59,16 +60,16 @@ const getHiddenUsersbyPages = async () => {
     }
 }
 
-const getRoleById = async (id)=>{
+const getRoleById = async (id) => {
     try {
-        
+
         const check = await userModel.findById(id).select("role")
-        console.log(JSON.stringify(check),"SERVICE GET ROLE");
-        if(check)
+        console.log(JSON.stringify(check), "SERVICE GET ROLE");
+        if (check)
             return check
         return false;
     } catch (error) {
-        console.log("ERROR when find role by id: " +error );
+        console.log("ERROR when find role by id: " + error);
         return false;
     }
 }
@@ -83,7 +84,7 @@ const checkRefreshToken = async (userField) => {
         }
         else
             return false
-            console.log("SERVICEEEEEEEEEEEEfffffffffffffffff " + JSON.stringify(check));
+        console.log("SERVICEEEEEEEEEEEEfffffffffffffffff " + JSON.stringify(check));
         if (check.message.length > 0) {
             console.log("SERVICEEEEEEEEEEEE " + check.message);
 
@@ -131,6 +132,12 @@ const signIn = async (userName, password) => {
 
 const GrantedPermissions = async (id) => {
     try {
+        const check = await userModel.findOne({ _id: id }).select("role")
+        if(!check)
+            throw new CustomError("No available document!!!")
+        if(check.role!=="Customer")
+            throw new CustomError("This user must be the Customer!!!")
+
         const result = await userModel.updateOne({ _id: id }, { role: "GrantedPermissions" })
         return result;
     } catch (error) {
@@ -140,7 +147,14 @@ const GrantedPermissions = async (id) => {
 }
 const Authorized = async (id) => {
     try {
+        const check = await userModel.findOne({ _id: id }).select("role")
+        if(!check)
+            throw new CustomError("No available document!!!")
+        if(check.role !=="GrantedPermissions")
+            throw new CustomError("This user must Granted Permissions first!!!")
+        console.log(JSON.stringify(check));
         const result = await userModel.updateOne({ _id: id, role: "GrantedPermissions" }, { role: "Staff" })
+        return result
     } catch (error) {
         console.log(`Authorized error (user's service):${error}`);
         return false
@@ -149,7 +163,7 @@ const Authorized = async (id) => {
 
 const LockUser = async (id) => {
     try {
-        const check = await userModel.findOne({ _id: id });
+        const check = await userModel.findOne({ _id: id }).select("role");
         if (check.role == "Admin")
             throw new CustomError("Can't lock the Admin.")
         const result = await userModel.updateOne({ _id: id }, { isLock: true })
@@ -161,6 +175,9 @@ const LockUser = async (id) => {
 }
 const DeleteUser = async (id) => {
     try {
+        const check = await userModel.findOne({ _id: id }).select("role");
+        if (check.role == "Admin")
+            throw new CustomError("Can't delete the Admin.")
         const result = await userModel.updateOne({ _id: id }, { isHidden: true })
         return result;
     } catch (error) {
@@ -173,8 +190,54 @@ const UndoUser = async (id) => {
         const result = await userModel.updateOne({ _id: id }, { isHidden: false })
         return result;
     } catch (error) {
-        console.log(`UndeleteUser error (user's service):${error}`);
+        console.log(`UndoUser error (user's service):${error}`);
         return false
     }
 }
-module.exports = { getRoleById,checkRefreshToken, UndoUser, DeleteUser, LockUser, Authorized, GrantedPermissions, addUser, signIn }
+const UnlockUser = async (id) => {
+    try {
+        const result = await userModel.updateOne({ _id: id }, { isLock: false })
+        return result;
+    } catch (error) {
+        console.log(`UndoUser error (user's service):${error}`);
+        return false
+    }
+}
+const updateUserInfo = async (id, updateFields) => {
+    try {
+        if (Object.keys(updateFields).includes("avatar")) {
+            const result = await uploadImage(updateFields.avatar, "Users");
+            if (result)
+                updateFields.avatar = result
+            else
+                updateFields.avatar = null
+        }
+        const result = await userModel.findByIdAndUpdate(id, updateFields,{new:true});
+        return result
+
+    } catch (error) {
+        console.log("Error at updateUserInfo (service): " + error);
+        return false;
+    }
+}
+const changePassword = async (userName, currentPassword, newPassword) => {
+    try {
+        const isAvailableUser = await userModel.findOne({ userName: userName });
+        let check = false
+        if (isAvailableUser) {
+            const isPasswordValid = await bcrypt.compare(currentPassword, isAvailableUser.password)
+            if (!isPasswordValid) {
+                throw new Error('Password is incorrect!')
+            }else if(isPasswordValid){
+                const hashedPassword = await bcrypt.hash(newPassword, 10)
+                isAvailableUser.password=hashedPassword
+                return await isAvailableUser.save()
+            }
+        }
+        return false;
+    } catch (error) {
+        console.log("Error at change password (service): " + error);
+        return false;
+    }
+}
+module.exports = {UnlockUser, changePassword,updateUserInfo, getRoleById, checkRefreshToken, UndoUser, DeleteUser, LockUser, Authorized, GrantedPermissions, addUser, signIn }

@@ -5,6 +5,8 @@ const addCategory = async (
     data
 ) => {
     try {
+        console.log(data);
+
         const newCategory = new categoryModel(data)
         const result = await newCategory.save()
         return result;

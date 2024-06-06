@@ -6,11 +6,15 @@ const type = {
     single: "SINGLE",
     multiple: "MULTIPLE"
 }
-
+const image = new Schema({
+    id: { type: String },
+    url: { type: String },
+    _id: false
+})
 const variations = new Schema({
 
     dimension: { type: Object, required: true },
-    image: { type: String },
+    image: image,
     // dimensions decribes size, color, fire retardant,... etc fully .
     type: {
         type: String,
@@ -21,6 +25,8 @@ const variations = new Schema({
     price: { type: Number },
     stock: { type: Number }
 })
+
+
 
 const productSchema = new Schema({
     category: {
@@ -48,7 +54,7 @@ const productSchema = new Schema({
     
     
     */
-    image: { type: [String] },
+    images: { type: [image] },
     name: { type: String, required: true },
     price: { type: Number, required: true },
     stock: { type: Number, required: true },

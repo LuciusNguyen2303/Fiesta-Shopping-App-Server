@@ -6,6 +6,7 @@ const addCategory = async (
     try {
         const image = data.image;
         const name = data.name;
+        const subCategory=data.subCategory;
         if (image && name) {
             const result = await categoryService.addCategory(data);
             if (result)
