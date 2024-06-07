@@ -3,6 +3,7 @@ var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
+const cors = require('cors')
 const mongoose = require('mongoose')
 
 var indexRouter = require('./routes/index');
@@ -19,13 +20,12 @@ mongoose.connect('mongodb://127.0.0.1:27017/FashionFiesta?readPreference=primary
 }).then(() => console.log('Database Connected!')).catch(err => console.log('Database Error: ', err));
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'hbs');
-
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
-
+app.use(cors())
 app.use('/', indexRouter);
 app.use('/api/productApi', productRouter)
 app.use('/api/userApi', userRouter)

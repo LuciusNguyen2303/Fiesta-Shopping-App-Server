@@ -191,7 +191,7 @@ function generateUpdateQuantityQuery(item) {
                 queryUpdate = {
                     $inc: {
                         [key]: -item["quantity"],
-                        sold:item["quantity"]
+                        sold: item["quantity"]
                     }
                 };
             }
@@ -302,25 +302,53 @@ const getProductByID = async (productID) => {
         console.log('getProductByID Error(Service): ' + error)
     }
 }
-const searchProducts = async (searchFields) => {
+const searchProducts = async (req) => {
     try {
+        const searchFields = req.query
         const searchBody = {}
-        if (searchFields.name) {
-            const regex = new RegExp(searchFields.name, 'i');
-            searchBody.name = { $regex: regex };
+        if (searchFields) {
+            if (searchFields && searchFields.name) {
+                const regex = new RegExp(searchFields.name, 'i');
+                searchBody.name = { $regex: regex };
+            }
+            
+
+            if (searchFields && searchFields.priceRange && searchFields.priceRange.min && searchFields.priceRange.max) {
+                searchBody.price = { $gte: searchFields.priceRange.min, $lte: searchFields.priceRange.max };
+            }
+            if (searchFields && searchFields.category) {
+                const categoryConditions = [];
+                if (Array.isArray(searchFields.category.mainCategory) && searchFields.category.mainCategory.length > 0) {
+                    categoryConditions.push({ 'category.mainCategory': { $in: searchFields.category.mainCategory } });
+                }
+                if (Array.isArray(searchFields.category.subCategory) && searchFields.category.subCategory.length > 0) {
+                    categoryConditions.push({ 'category.subCategory': { $in: searchFields.category.subCategory } });
+                }
+
+                if (categoryConditions.length > 0) {
+                    searchBody.$or = categoryConditions;
+                }
+            }
         }
-        if (searchFields.priceRange) {
-            searchBody.price = { $gte: searchFields.priceRange.min, $lte: searchFields.priceRange.max };
+        const sortBy = searchFields && searchFields.sortBy || 'createAt';
+        const sortOrder = searchFields && searchFields.sortOrder === 'desc' ? -1 : 1;
+        const limit = searchFields && searchFields.limit || 0;
+        const page = searchFields && searchFields.page || 0;
+        let skip = 0;
+        if (page > 0 && limit > 0) {
+            skip = (page - 1) * limit;
         }
-        const products = await productModel.find(searchBody)
+        const countDocument = await productModel.find(searchBody).countDocuments();
+        console.log(searchBody);
+        const products = await productModel.find(searchBody).sort({ [sortBy]: sortOrder }).skip(skip).limit(limit)
         if (!products || products.length === 0) {
             console.log('No products found');
             return null;
         }
-        return products;
+        return { products, countDocument };
     } catch (error) {
         console.log('searchProducts Error(Service): ' + error)
     }
 }
-module.exports = {  updateQuantityAndSoldInQuery, deleteProduct, addProduct, deleteAttributesInProduct, getProductsByPageByCategories, getAllProduct, getProductsByPage, updateProduct, getProductByID, searchProducts }
+module.exports = { updateQuantityAndSoldInQuery, deleteProduct, addProduct, deleteAttributesInProduct, getProductsByPageByCategories, getAllProduct, getProductsByPage, updateProduct, getProductByID, searchProducts }
 
