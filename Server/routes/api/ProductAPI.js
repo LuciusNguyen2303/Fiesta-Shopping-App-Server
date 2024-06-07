@@ -165,10 +165,10 @@ router.post('/deleteProduct', async (req, res, next) => {
 // Tìm kiếm sản phẩm theo điều kiện
 router.get('/searchProducts', async (req, res, next) => {
     try {
-        let { searchFields } = req.body;
-        const products = await productController.searchProducts(searchFields);
+        
+        const products = await productController.searchProducts(req);
         return products != null ?
-            res.status(200).json({ result: true, message: 'searchProducts succesfully', data: products }) :
+            res.status(200).json({ result: true, message: 'searchProducts succesfully', data: products.products, documents: products.countDocument}) :
             res.status(200).json({ result: true, message: 'not product found', data: products })
     } catch (error) {
         return res.status(500).json({ result: false, message: 'searchProducts Error(Api): ' + error })

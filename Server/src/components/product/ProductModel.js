@@ -57,7 +57,8 @@ const productSchema = new Schema({
     Description: { type: String },
     Brand: { type: String },
     variations: [variations],
-    isHidden: { type: Boolean, default: false }
+    isHidden: { type: Boolean, default: false },
+    createAt: {type: String, default: new Date()}
 });
 productSchema.index({
     'variations.price': 1,
