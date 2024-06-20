@@ -114,7 +114,7 @@ router.post('/updateProduct', async (req, res, next) => {
     try {
         let { productID } = req.query;
         const { updateFields } = req.body;
-        
+
         const productUpdated = await productController.updateProduct(productID, updateFields)
         return productUpdated ?
             res.status(200).json({ result: true, message: 'updateProduct succesfully', data: productUpdated }) :
@@ -141,8 +141,8 @@ router.get('/getProductByID', async (req, res, next) => {
 router.post('/deleteAttributesInProduct', async (req, res, next) => {
     try {
         let { productID } = req.query
-        let {updateFields}=req.body
-        const product = await productController.deleteAttributesInProduct(productID,updateFields);
+        let { updateFields } = req.body
+        const product = await productController.deleteAttributesInProduct(productID, updateFields);
         return product ?
             res.status(200).json({ result: true, message: 'getProductByID succesfully', data: product }) :
             res.status(400).json({ result: false, message: 'getProductByID failed' })
@@ -153,7 +153,7 @@ router.post('/deleteAttributesInProduct', async (req, res, next) => {
 router.post('/deleteProduct', async (req, res, next) => {
     try {
         let { updateFields } = req.body
-        const {productIDs} = updateFields
+        const { productIDs } = updateFields
         const product = await productController.deleteProduct(productIDs);
         return product ?
             res.status(200).json({ result: true, message: 'getProductByID succesfully', data: product }) :
@@ -165,13 +165,22 @@ router.post('/deleteProduct', async (req, res, next) => {
 // Tìm kiếm sản phẩm theo điều kiện
 router.get('/searchProducts', async (req, res, next) => {
     try {
-        
+
         const products = await productController.searchProducts(req);
         return products != null ?
-            res.status(200).json({ result: true, message: 'searchProducts succesfully', data: products.products, documents: products.countDocument}) :
+            res.status(200).json({ result: true, message: 'searchProducts succesfully', data: products.products, documents: products.countDocument }) :
             res.status(200).json({ result: true, message: 'not product found', data: products })
     } catch (error) {
         return res.status(500).json({ result: false, message: 'searchProducts Error(Api): ' + error })
+    }
+})
+router.get('/checkVaritationProductStock', async (req, res, next) => {
+    try {
+        const { id, size, color } = req.query;
+        const stock = await productController.checkProductVariationStock(id, size, color)
+        return res.status(200).json({ result: true, data: stock })
+    } catch (error) {
+        console.log('checkProductVariationStock error (Api): ' + error);
     }
 })
 module.exports = router;

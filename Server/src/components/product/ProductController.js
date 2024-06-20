@@ -98,5 +98,20 @@ const searchProducts = async (searchFields) => {
         console.log('getProductByID Error(Controller): ' + error);
     }
 }
+const checkProductVariationStock = async (productID, size, color) => {
+    try {
+        if (productID) {
+            if (!size) {
+                return null;
+            }
+            if (!color) {
+                return null;
+            }
+            return await productService.checkProductVariationStock(productID, size, color)
+        }
+        return false;
+    } catch (error) {
 
-module.exports = { deleteProduct,addProduct, deleteAttributesInProduct, getProductsByPage, getAllProduct, updateProduct, getProductByID, searchProducts }
+    }
+}
+module.exports = { deleteProduct, addProduct, deleteAttributesInProduct, getProductsByPage, getAllProduct, updateProduct, getProductByID, searchProducts, checkProductVariationStock }
