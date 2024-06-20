@@ -6,6 +6,7 @@ const productModel = require('./ProductModel')
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 const ObjectId = mongoose.Types.ObjectId
+
 const addProduct = async (
     category, name, image, price, stock, brand, rating, Description, variations) => {
     try {
@@ -20,6 +21,7 @@ const addProduct = async (
         return false;
     }
 }
+
 const getAllProduct = async () => {
     try {
         return await productModel.find({});
@@ -27,6 +29,7 @@ const getAllProduct = async () => {
         console.log('getAllProduct Error(Service): ' + error);
     }
 }
+
 const getProductsByPage = async (page) => {
     try {
 
@@ -46,6 +49,7 @@ const getProductsByPage = async (page) => {
         console.log('getAllProduct Error(Service): ' + error);
     }
 }
+
 const getProductsByPageByCategories = async (page) => {
     try {
         return await productModel.find({});
@@ -108,6 +112,7 @@ function generateUpdateQueryVariations(updateFields) {
     return { query: queryUpdate, filter: arrayFilter }
 
 }
+
 function generateDeleteQueryVariations(updateFields) {
     let queryUpdate = {
 
@@ -172,6 +177,7 @@ function generateDeleteQueryVariations(updateFields) {
     return { query: queryUpdate, filter: arrayFilter }
 
 }
+
 function generateUpdateQuantityQuery(item) {
     let queryUpdate = {};
     let arrayFilter = [];
@@ -293,6 +299,7 @@ const updateProduct = async (productID, updateFileds) => {
      
       */
 }
+
 const getProductByID = async (productID) => {
     try {
         const product = await productModel.findById(productID)
@@ -302,6 +309,7 @@ const getProductByID = async (productID) => {
         console.log('getProductByID Error(Service): ' + error)
     }
 }
+
 const searchProducts = async (req) => {
     try {
         const searchFields = req.query
@@ -350,5 +358,28 @@ const searchProducts = async (req) => {
         console.log('searchProducts Error(Service): ' + error)
     }
 }
-module.exports = { updateQuantityAndSoldInQuery, deleteProduct, addProduct, deleteAttributesInProduct, getProductsByPageByCategories, getAllProduct, getProductsByPage, updateProduct, getProductByID, searchProducts }
+
+const checkProductVariationStock = async (id, size, color) => {
+    try {
+        const product = await productModel.findById(id, 'variations');
+        if (product && product.variations && product.variations.length > 0) {
+            const variation = product.variations.find(item => item.dimension.size === size && item.dimension.color === color);
+            if (variation) {
+                return variation.stock;
+            }
+        }
+        return null;
+    } catch (error) {
+        console.log('Error while checking product variation stock: ', error);
+        return null;
+    }
+}
+module.exports = { 
+    updateQuantityAndSoldInQuery, 
+    deleteProduct, addProduct, 
+    deleteAttributesInProduct, 
+    getProductsByPageByCategories, 
+    getAllProduct, getProductsByPage, 
+    updateProduct, getProductByID, 
+    searchProducts, checkProductVariationStock }
 
