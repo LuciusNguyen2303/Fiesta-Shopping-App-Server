@@ -10,7 +10,7 @@ const uploadImage = async (image, pathR) => {
         const response = await imagekit.upload({
             file: image,
             fileName: Date.now() + '.jpg',
-            folder: `/FiestaApp/${pathR?pathR:""}`
+            folder: `/FiestaApp/${pathR ? pathR : ""}`
         });
         return { id: response.fileId, url: response.url };
     } catch (error) {
@@ -18,6 +18,15 @@ const uploadImage = async (image, pathR) => {
         return null;
     }
 };
+
+function bufferToBinaryString(buffer) {
+    let binaryString = '';
+    for (const byte of buffer) {
+        // Chuyển byte thành chuỗi nhị phân và đảm bảo độ dài là 8 ký tự
+        binaryString += byte.toString(2).padStart(8, '0');
+    }
+    return binaryString;
+}
 const validateInput = (input) => {
     if (isValidURI(input)) {
         console.log("uri");
@@ -25,6 +34,9 @@ const validateInput = (input) => {
     } else if (isValidBase64(input)) {
         console.log("base64");
         return 'base64';
+    } else if (isBinary(input)) {
+        console.log("binary");
+        return 'binary'
     } else {
         console.log("invalid");
         return 'invalid';
@@ -35,11 +47,16 @@ const isValidURI = (str) => {
     const pattern = /^(https?|ftp):\/\/[^\s/$.?#].[^\s]*$/i;
     return pattern.test(str);
 };
-
+function isBinary(str) {
+    // Chuyển đổi giá trị thành chuỗi trước khi kiểm tra
+    const strBinary = String(str);
+    return /^[01]+$/.test(strBinary);
+}
 const isValidBase64 = (str) => {
-    const base64Pattern = /^(data:image\/(?:png|jpg|jpeg|gif|bmp|webp);base64,)([A-Za-z0-9+\/]{4})*(?:[A-Za-z0-9+\/]{2}==|[A-Za-z0-9+\/]{3}=)?$/;
+    const base64Pattern = /^(data:image\/(?:png|jpg|jpeg|gif|bmp|webp);base64,)?([A-Za-z0-9+\/]{4})*(?:[A-Za-z0-9+\/]{2}==|[A-Za-z0-9+\/]{3}=)?$/;
     return base64Pattern.test(str);
 };
+
 
 /** 
 * @param {"Users" | "Categories" | "Reviews"|"Products"} path
@@ -77,4 +94,4 @@ const deleteImages = async (images) => {
     }
 };
 
-module.exports = { uploadMultipleImages, uploadImage, deleteImages }
+module.exports = {bufferToBinaryString, uploadMultipleImages, uploadImage, deleteImages }
