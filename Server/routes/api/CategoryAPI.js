@@ -81,4 +81,23 @@ router.post('/deleteCategory/:id', async (req, res, next) => {
 
     }
 });
+router.post('/deleteTheItemsCategory/:id', async (req, res, next) => {
+    try {
+        const {id} = req.params;
+        const {data}=req.body
+        if (id) {
+            const result = await categoryController.deleteAnItemSubcategory(id,data)
+            if (result)
+                return res.status(200).json({ result: true, statusCode: 200 })
+        }
+        return res.status(200).json({
+            result: false, statusCode: 204
+        })
+    } catch (error) {
+
+        console.error(`Editing new category error (API): ${error}`);
+        return res.status(500).json({ result: false, statusCode: 500, message: `Error: ${error}` })
+
+    }
+});
 module.exports = router;

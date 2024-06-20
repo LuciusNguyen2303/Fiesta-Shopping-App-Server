@@ -46,7 +46,7 @@ function generateUpdateQueryVariations(updateFields) {
                             $set: {
                                 ...queryUpdate.$set,
                                 [key]: item[itemProducts],
-                                'modifiedOn':new Date.now()
+                                'modifiedOn':new Date()
                             }
                         };
 
