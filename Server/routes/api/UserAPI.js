@@ -5,10 +5,9 @@ const userController = require('../../src/components/user/UserController')
 const { addUser_Validation } = require('../../src/middleware/userValidation');
 const { authenticateToken, authenticateTokenGG } = require('../../src/middleware/jwtValidation')
 const { AuthorizedForAdmin, AuthorizedForCustomer, AuthorizedForStaff } = require("../../src/middleware/Authorized");
-const { uploadMultipleImages, deleteImages, uploadImage, bufferToBinaryString } = require('../../src/components/public method/ImageMethod/ImageMethods');
-const { upload } = require('../../src/middleware/MulterInitization')
-const multer = require('multer')
+const {uploadFile} = require("../../src/middleware/UploadFile")
 const fs = require('fs');
+const { hostAddingImageToCDN, hostUpdateImageToCDN } = require('./ImageMethod/ImageMethod');
 // http://localhost:3000/api/userApi/
 
 router.post('/addUser', [addUser_Validation], async (req, res, next) => {
@@ -36,118 +35,36 @@ router.post('/login', async (req, res, next) => {
     }
 })
 
-function uploadFile(req, res, next) {
-    const uploadFiles = upload.fields([{ name: 'images' }, { name: 'subImages' }]);
 
-    uploadFiles(req, res, function (err) {
-        if (err instanceof multer.MulterError) {
-            console.log("Uploading images to server error(api)", err);
-
-            // A Multer error occurred when uploading.
-            return res.status(500).json({ error: err })
-        } else if (err) {
-            console.log("Uploading images to server error(api)", err);
-
-            // An unknown error occurred when uploading.
-            return res.status(500).json({ error: err })
-
-        }
-        // Everything went fine. 
-        next()
-    })
-}
 
 /** 
 * @param {"Users" | "Categories" | "Reviews"|"Products"} pathR
 
 
 */
-const hostAddingImageToCDN = async (data, req, pathR) => {
+router.get("/getUserInfo/:id", async (req, res, next) => {
     try {
-        if (req.files['images']) {
-            const binaryImagesPromises = req.files['images'].map(async (file) => {
-
-                const binaryData = fs.readFileSync(file.path);
-                const base64 = binaryData.toString('base64')
-                const result = await uploadImage(base64, pathR)
-                // console.log("binaryyy", /^[01]+$/.test(binary));
-
-                fs.unlinkSync(file.path)
-                return result
-            });
-            const result = await Promise.all(binaryImagesPromises)
-            if (result)
-                data.images = result
-        }
-        // Xử lý tệp tin cho variations
-        if (req.files['subImages']) {
-            const variationFiles = req.files['subImages'];
-            variationFiles.forEach(async (file, index) => {
-                if (data.variations[index].image == file.filename) {
-                    const binaryData = fs.readFileSync(file.path);
-                    const base64 = binaryData.toString('base64')
-                    const image = await uploadImage(base64, pathR)
-                    data.variations[index].image = image;
-                    fs.unlinkSync(file.path)
-
-                }
-            });
-        }
-        return data
+        const { id } = req.params;
+        const data = await userController.getUserbyId(id)
+        return data?res.status(200).json({ user: data, statusCode: 200, message: "Get the user's information successfully" })
+                :res.status(400).json({ user: data, statusCode: 200, message: "No user available!!" })
     } catch (error) {
-        console.log("hostAddingImageToCDN: " + error);
-        return null
+        return res.status(500).json({ error: error, statusCode: 500 })
     }
-}
-const hostUpdateImageToCDN = async (data, req, pathR) => {
-    try {
-        if (req.files['images']) {
-            const binaryImagesPromises = req.files['images'].map(async (file) => {
-
-                const binaryData = fs.readFileSync(file.path);
-                const base64 = binaryData.toString('base64')
-                const result = await uploadImage(base64, pathR)
-                // console.log("binaryyy", /^[01]+$/.test(binary));
-
-                fs.unlinkSync(file.path)
-                return result
-            });
-            const result = await Promise.all(binaryImagesPromises)
-            if (result)
-                data.images = result
-        }
-        // Xử lý tệp tin cho variations
-        if (req.files['subImages']) {
-            const variationFiles = req.files['subImages'];
-            variationFiles.forEach(async (file, index) => {
-                if (data.variations[index].image == file.filename) {
-                    const binaryData = fs.readFileSync(file.path);
-                    const base64 = binaryData.toString('base64')
-                    const image = await uploadImage(base64, pathR)
-                    data.variations[index].image = image;
-                    fs.unlinkSync(file.path)
-
-                }
-            });
-        }
-        return data
-    } catch (error) {
-        console.log("hostAddingImageToCDN: " + error);
-        return null
-    }
-}
+})
 router.post('/testAuthen', [uploadFile], async (req, res, next) => {
     try {
         // Lấy dữ liệu JSON từ body
-        const jsonData = JSON.parse(req.body.data);
-        console.time("Time host");
-        const addingData = await hostAddingImageToCDN(jsonData, req, "Products")
-        console.timeEnd("Time host");
+        // const jsonData = JSON.parse(req.body.data);
+        // console.time("Time host");
+        // const addingData = await hostUpdateImageToCDN(jsonData, req, "Products")
+        // console.timeEnd("Time host");
+        let regex = new RegExp("https:\/\/ik\.imagekit\.io\/");
 
         // Log dữ liệu JSON đã cập nhật với đường dẫn tệp tin
-        console.log('Dữ liệu JSON sau khi cập nhật:', JSON.stringify(addingData));
+        console.log('Dữ liệu JSON sau khi cập nhật:', regex.test("https://ik.imagekit.io/m8rm3w365/1717650803771_KxkkwhduB.jpg"));
 
-        return res.status(200).json({ result: true, data: JSON.stringify(addingData), message: "Token is valid" })
+        return res.status(200).json({ result: true, message: "Token is valid" })
 
     } catch (error) {
         console.log('addUser Error(Api): ' + error);

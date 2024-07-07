@@ -80,20 +80,17 @@ const generateUpdateCategoryQuery = async (updateData) => {
                                 [key + "name"]: item.name
                             }
                         };
-                    if (typeof item.image !== 'undefined') {
-                        if (typeof item.image.id !== 'undefined')
-                            await deleteImages([item.image.id])
-                        if (typeof item.image.url !== 'undefined') {
-                            const image = await uploadImage(item.image.url, "Categories")
+                    if (typeof item.subImage !== 'undefined') {
+                      
                             queryUpdate = {
                                 ...queryUpdate,
                                 $set: {
                                     ...queryUpdate.$set,
-                                    [key + "image"]: image
+                                    [key + "subImage"]: item.subImage
                                 }
                             };
                         }
-                    }
+                    
 
                     arrayFilter.push({ [`${key}._id`]: item._id });
 

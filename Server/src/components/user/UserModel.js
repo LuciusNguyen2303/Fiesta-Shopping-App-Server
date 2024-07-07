@@ -7,7 +7,7 @@ const userSchema = new Schema({
     address: { type: String, default: "" },
     userName: { type: String, unique: true },
     password: { type: String },
-    avatar: {
+    image: {
         id: { type: String },
         url: { type: String }
     },

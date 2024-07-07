@@ -5,6 +5,7 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 const mongoose = require('mongoose')
 const cors = require('cors')
+const rateLimit = require('express-rate-limit')
 var indexRouter = require('./routes/index');
 var productRouter = require('./routes/api/ProductAPI')
 var userRouter = require('./routes/api/UserAPI')
@@ -12,7 +13,18 @@ var categoryRouter = require('./routes/api/CategoryAPI')
 var cartRouter = require('./routes/api/CartApi')
 var orderRouter = require('./routes/api/orderApi')
 var reviewRouter = require('./routes/api/ReviewApi')
+var paymentRouter = require('./routes/api/PaymentApi')
+
 var app = express();
+/* 
+  RateLimit is a library that can prevent the server from overloading the request in a specific time !!!
+*/
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  keyGenerator: (req, res) => req.ip,
+  max: 100, // limit each IP to 100 requests per windowMs
+  message: "Too many requests from this IP, please try again later."
+});
 
 // mongo DB connect
 mongoose.connect('mongodb://127.0.0.1:27017/FashionFiesta?readPreference=primary&appname=MongoDB%20Compass&directConnection=true&ssl=false', {
@@ -21,12 +33,15 @@ mongoose.connect('mongodb://127.0.0.1:27017/FashionFiesta?readPreference=primary
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'hbs');
 
+
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(cors())
+app.use(limiter)
+
 app.use('/', indexRouter);
 app.use('/api/productApi', productRouter)
 app.use('/api/userApi', userRouter)
@@ -34,6 +49,8 @@ app.use('/api/category', categoryRouter)
 app.use('/api/cart', cartRouter)
 app.use('/api/order', orderRouter)
 app.use('/api/reviews', reviewRouter)
+app.use('/api/payment', paymentRouter)
+
 
 
 // catch 404 and forward to error handler

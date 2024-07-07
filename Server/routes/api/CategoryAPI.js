@@ -1,6 +1,7 @@
 const express = require('express')
 const router = express.Router();
 const categoryController = require('../../src/components/category/CategoryController')
+const {uploadFile} = require("../../src/middleware/UploadFile")
 
 // http://localhost:3000/api/category/addCategory
 
