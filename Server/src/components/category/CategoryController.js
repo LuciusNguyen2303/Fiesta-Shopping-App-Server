@@ -1,3 +1,4 @@
+const CustomError = require('../../HandleError');
 const categoryService = require('./CategoryService');
 
 const addCategory = async (
@@ -6,6 +7,7 @@ const addCategory = async (
     try {
         const image = data.image;
         const name = data.name;
+        const subCategory=data.subCategory;
         if (image && name) {
             const result = await categoryService.addCategory(data);
             if (result)
@@ -64,4 +66,18 @@ const deleteCategory = async (
         console.log(`Editing new category error (Controller)${error}`);
     }
 }
-module.exports = { deleteCategory, addCategory, editCategory, getAllCategory }
+const deleteAnItemSubcategory = async (id, data) => {
+    try {
+        console.log(`ID la ${id}`);
+        if(!id)
+            throw new CustomError("No id to delete  Items Subcategory")
+        if(!data&&Object.keys(data).includes("subCategory"))
+            throw new CustomError("No available data to delete  Items Subcategory")
+        
+        return await categoryService.deleteAnItemSubcategory(id, data)
+    } catch (error) {
+        console.log(`deleteCategory error (Service)${error}`);
+        return false
+    }
+}
+module.exports = { deleteAnItemSubcategory,deleteCategory, addCategory, editCategory, getAllCategory }

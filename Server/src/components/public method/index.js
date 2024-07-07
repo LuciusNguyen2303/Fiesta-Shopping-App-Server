@@ -5,7 +5,8 @@ const verifyAccessToken=require("./jwtMethods")
 const verifyRefreshToken=require("./jwtMethods")
 const createAccessToken=require("./jwtMethods")
 const createRefreshToken=require("./jwtMethods")
-
+const cleanedObj = require('./object')
+const CustomerUpdateFields= require('./constant')
 module.exports={
     ...skip,
     ...totalPages,
@@ -14,4 +15,6 @@ module.exports={
     ...verifyRefreshToken,
     ...createAccessToken,
     ...createRefreshToken,
+    ...cleanedObj,
+    ...CustomerUpdateFields
 }
