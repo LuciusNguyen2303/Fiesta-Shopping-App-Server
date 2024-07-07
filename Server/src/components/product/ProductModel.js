@@ -14,7 +14,7 @@ const image = new Schema({
 const variations = new Schema({
 
     dimension: { type: Object, required: true },
-    image: image,
+    subImage: image,
     // dimensions decribes size, color, fire retardant,... etc fully .
     type: {
         type: String,

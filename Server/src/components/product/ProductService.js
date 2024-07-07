@@ -11,12 +11,12 @@ const addProduct = async (
     category, name, image, price, stock, brand, rating, Description, variations) => {
     try {
         // Send image to host Imagekit 
-        const images = await uploadMultipleImages(image,"Products")
+        const images = await uploadMultipleImages(image, "Products")
         // Send image of variations to host imagekit
         if (variations && Array.isArray(variations)) {
             const variationPromises = variations.map(async (item, index) => {
                 if (Object.keys(item).includes("image")) {
-                    const imageURL = await uploadImage(item["image"],"Products");
+                    const imageURL = await uploadImage(item["image"], "Products");
                     item.image = imageURL
                 }
 
@@ -69,25 +69,27 @@ const getProductsByPageByCategories = async (page) => {
     }
 }
 
-async function generateUpdateQueryVariations(updateFields) {
+function generateUpdateQuery(updateFields) {
     let queryUpdate = {
         $set: {}
     };
-    let arrayFilter = [];
+    let arrayFilter = [], deleteImageArr = [], updatedImagesArr = [];
 
     try {
         // Kiểm tra nếu updateFields có thuộc tính variations và variations là một mảng
         if (!updateFields.variations || !Array.isArray(updateFields.variations)) {
             throw new Error("Invalid input: updateFields.variations should be a non-empty array");
         }
+        // Query Update for the images of a products
 
+      
+        // Query Update for the variations of a product
 
         for (let index = 0; index < updateFields.variations.length; index++) {
             let item = updateFields.variations[index];
             let variationsKeys = Object.keys(item);
 
             if (variationsKeys.length > 1) {
-                console.log("length", variationsKeys.length,updateFields.variations.length);
 
                 const _id = item._id;
                 let keyArr = `elements${index}`;
@@ -109,14 +111,12 @@ async function generateUpdateQueryVariations(updateFields) {
                             continue;
                         }
 
-                        if (itemVariations == "image") {
-                            await deleteImages([item[itemVariations].id]);
-                            const result = await uploadImage(item[itemVariations].newImage,"Products");
+                        if (itemVariations == "subImage") {
                             queryUpdate = {
                                 ...queryUpdate,
                                 $set: {
                                     ...queryUpdate.$set,
-                                    [key]: result
+                                    [key]: item["subImage"]
                                 }
                             };
                             continue;
@@ -312,20 +312,6 @@ const deleteProduct = async (productIDs) => {
 const updateProduct = async (productID, updateFileds) => {
     try {
         let productUpdated = false;
-        console.time("QUERY UPDATE>>>")
-        if (Object.keys(updateFileds).includes("variations")) {
-            const updateData =await generateUpdateQueryVariations(updateFileds)
-            if (updateData)
-                productUpdated = await productModel.findByIdAndUpdate(productID, updateData.query, { arrayFilters: updateData.filter })
-            console.log("Variations",productUpdated);
-            delete updateFileds.variations
-        }
-        if (Object.keys(updateFileds).includes("image")) {
-            const images = updateFileds.image;
-            const imageUrls = uploadMultipleImages(images,"Products")
-            updateFileds.image = imageUrls;
-        }
-        console.log("productUpdated",productUpdated,JSON.stringify(updateFileds));
 
         productUpdated = await productModel.findByIdAndUpdate(productID, updateFileds, { new: true })
         console.timeEnd("QUERY UPDATE>>>")
@@ -368,5 +354,35 @@ const searchProducts = async (searchFields) => {
         console.log('searchProducts Error(Service): ' + error)
     }
 }
-module.exports = { updateQuantityAndSoldInQuery, deleteProduct, addProduct, deleteAttributesInProduct, getProductsByPageByCategories, getAllProduct, getProductsByPage, updateProduct, getProductByID, searchProducts }
+
+const findPriceInProducts = async (data) => {
+    try {
+        const result = await productModel.aggregate([
+            {
+                $match: {
+                    _id: { $in: data.productIds }
+                }
+            },
+            {
+                $unwind: "$variations"
+            },
+            {
+                $match: {
+                    "variations._id": { $in: data.variationIds }
+                }
+            },
+            {
+                $project: {
+                    productId: "$_id",
+                    variationId: "$variations._id",
+                    price: "$variations.price"
+                }
+            }
+        ]).exec()
+        return result ? result : null;
+    } catch (error) {
+        console.log('searchProducts Error(Service): ' + error)
+    }
+}
+module.exports = { findPriceInProducts, updateQuantityAndSoldInQuery, deleteProduct, addProduct, deleteAttributesInProduct, getProductsByPageByCategories, getAllProduct, getProductsByPage, updateProduct, getProductByID, searchProducts }
 

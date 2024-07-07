@@ -7,7 +7,7 @@ const image = new Schema({
 })
 const subcategorySchema = new Schema({
     name: { type: String, required: true },
-    image: image,
+    subImage: image,
 });
 const categorySchema = new Schema({
     name: { type: String, required: true },

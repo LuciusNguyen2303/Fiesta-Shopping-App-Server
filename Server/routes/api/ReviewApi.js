@@ -1,6 +1,7 @@
 const express = require('express')
 const router = express.Router();
 const reviewController = require('../../src/components/reviews/reviewController')
+const {uploadFile} = require("../../src/middleware/UploadFile")
 
 // http://localhost:3000/api/reviews/addReview
 router.post("/addReview", async (req, res, next) => {

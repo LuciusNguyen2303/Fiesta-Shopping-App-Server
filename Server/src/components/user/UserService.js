@@ -25,7 +25,7 @@ const addUser = async (name, userName, password, gender) => {
 }
 const getUserbyId = async (id) => {
     try {
-        const result = await userModel.findOne({ _id: id }, { refreshToken: 0 })
+        const result = await userModel.findOne({ _id: id }).select("_id name gender phoneNumber address userName avatar")
         return result
     } catch (error) {
         console.log('addUser Error(Service): ' + error);
@@ -205,13 +205,7 @@ const UnlockUser = async (id) => {
 }
 const updateUserInfo = async (id, updateFields) => {
     try {
-        if (Object.keys(updateFields).includes("avatar")) {
-            const result = await uploadImage(updateFields.avatar, "Users");
-            if (result)
-                updateFields.avatar = result
-            else
-                updateFields.avatar = null
-        }
+      
         const result = await userModel.findByIdAndUpdate(id, updateFields,{new:true});
         return result
 
@@ -240,4 +234,4 @@ const changePassword = async (userName, currentPassword, newPassword) => {
         return false;
     }
 }
-module.exports = {UnlockUser, changePassword,updateUserInfo, getRoleById, checkRefreshToken, UndoUser, DeleteUser, LockUser, Authorized, GrantedPermissions, addUser, signIn }
+module.exports = {getUserbyId,UnlockUser, changePassword,updateUserInfo, getRoleById, checkRefreshToken, UndoUser, DeleteUser, LockUser, Authorized, GrantedPermissions, addUser, signIn }

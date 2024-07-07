@@ -7,12 +7,13 @@ const addCarts = async (addFields) => {
     try {
         if (!addFields)
             throw new CustomError("No info to add in addFields", 500)
-        if (Object.keys(addFields).length<2)
+        const keys=Object.keys(addFields);
+        if (!keys.includes("userId")||!keys.includes("productId")||!keys.includes("variationId")||!keys.includes("quantity"))
             throw new CustomError("No userId or products in addFields", 500)
 
         return await cartService.addCart(addFields)
     } catch (error) {
-        console.log('getCartsByPage error(Controller): ' + err);
+        console.log('addCart error(Controller): ' + err);
         return false;
     }
 }

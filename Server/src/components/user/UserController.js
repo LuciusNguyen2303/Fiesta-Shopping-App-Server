@@ -28,6 +28,15 @@ const checkRefreshToken = async (user) => {
         console.log('Login Error(Controller): ' + error);
     }
 }
+const getUserbyId = async (id) => {
+    try {
+        if (!id)
+            throw new CustomError("No id user!!", 500);
+        return await userService.getUserbyId(id)
+    } catch (error) {
+        console.log('Login Error(Controller): ' + error);
+    }
+}
 const getRoleById = async (id) => {
     try {
         if (!id)
@@ -123,4 +132,4 @@ const changePassword = async (userName, currentPassword, newPassword) => {
         return false;
     }
 }
-module.exports = { UnlockUser,changePassword,updateUserInfo, getRoleById, checkRefreshToken, UndoUser, DeleteUser, LockUser, Authorized, GrantedPermissions, addUser, signIn }
+module.exports = { getUserbyId,UnlockUser,changePassword,updateUserInfo, getRoleById, checkRefreshToken, UndoUser, DeleteUser, LockUser, Authorized, GrantedPermissions, addUser, signIn }
