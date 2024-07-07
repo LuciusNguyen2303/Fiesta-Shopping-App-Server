@@ -36,6 +36,17 @@ const getAllProduct = async () => {
         console.log('getAllProduct error(Controller): ' + err);
     }
 }
+const findPriceInProducts = async (data) => {
+    try {
+        if (!data.productIds || !Array.isArray(data.productIds))
+            return null
+        if (!data.variationIds || !Array.isArray(data.variationIds))
+            return null
+        return await productService.findPriceInProducts(data)
+    } catch (error) {
+        console.log('getAllProduct error(Controller): ' + err);
+    }
+}
 const getProductsByPage = async (page) => {
     try {
         console.log(skip(LIMIT, page));
@@ -43,6 +54,7 @@ const getProductsByPage = async (page) => {
         return await productService.getProductsByPage(skip(LIMIT, page))
     } catch (error) {
         console.log('getAllProduct error(Controller): ' + err);
+        return false;
     }
 }
 const updateProduct = async (productID, updateFields) => {
@@ -66,6 +78,7 @@ const updateProduct = async (productID, updateFields) => {
         return await productService.updateProduct(productID, updateFields)
     } catch (error) {
         console.log('updateProduct Error(Controller): ' + error);
+        return false;
     }
 }
 const getProductByID = async (productID) => {
@@ -73,6 +86,7 @@ const getProductByID = async (productID) => {
         return await productService.getProductByID(productID)
     } catch (error) {
         console.log('getProductByID Error(Controller): ' + error);
+        return false;
     }
 }
 const deleteAttributesInProduct = async (productID, updateFields) => {
@@ -80,6 +94,7 @@ const deleteAttributesInProduct = async (productID, updateFields) => {
         return await productService.deleteAttributesInProduct(productID, updateFields)
     } catch (error) {
         console.log('getProductByID Error(Controller): ' + error);
+        return false;
     }
 }
 const deleteProduct = async (productIDs) => {
@@ -89,6 +104,7 @@ const deleteProduct = async (productIDs) => {
         return await productService.deleteProduct(productIDs)
     } catch (error) {
         console.log('getProductByID Error(Controller): ' + error);
+        return false;
     }
 }
 const searchProducts = async (searchFields) => {
@@ -96,6 +112,7 @@ const searchProducts = async (searchFields) => {
         return await productService.searchProducts(searchFields)
     } catch (error) {
         console.log('getProductByID Error(Controller): ' + error);
+        return false;
     }
 }
 const checkProductVariationStock = async (productID, size, color) => {
@@ -111,7 +128,9 @@ const checkProductVariationStock = async (productID, size, color) => {
         }
         return false;
     } catch (error) {
-
+        console.log('checkProductVariationStock Error(Controller): ' + error);
+        return false;
     }
 }
-module.exports = { deleteProduct, addProduct, deleteAttributesInProduct, getProductsByPage, getAllProduct, updateProduct, getProductByID, searchProducts, checkProductVariationStock }
+
+module.exports = { findPriceInProducts, deleteProduct, addProduct, deleteAttributesInProduct, getProductsByPage, getAllProduct, updateProduct, getProductByID, searchProducts }
