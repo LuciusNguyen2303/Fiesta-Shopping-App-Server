@@ -28,7 +28,7 @@ const productSchema = new Schema({
         of: {
             type:
             {
-                type: mongoose.Schema.Types.ObjectId,
+                type: String,
                 ref: "categories"
             }
 
@@ -58,7 +58,7 @@ const productSchema = new Schema({
     Brand: { type: String },
     variations: [variations],
     isHidden: { type: Boolean, default: false },
-    createAt: {type: String, default: new Date()}
+    createAt: {type: Date, default: Date.now}
 });
 productSchema.index({
     'variations.price': 1,

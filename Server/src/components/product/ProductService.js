@@ -312,50 +312,59 @@ const getProductByID = async (productID) => {
 
 const searchProducts = async (req) => {
     try {
-        const searchFields = req.query
-        const searchBody = {}
-        if (searchFields) {
-            if (searchFields && searchFields.name) {
-                const regex = new RegExp(searchFields.name, 'i');
-                searchBody.name = { $regex: regex };
-            }
-            
+        const { name, priceRange, category, sortBy, sortOrder, limit = 0, page = 0 } = req.query;
+        let searchBody = {};
 
-            if (searchFields && searchFields.priceRange && searchFields.priceRange.min && searchFields.priceRange.max) {
-                searchBody.price = { $gte: searchFields.priceRange.min, $lte: searchFields.priceRange.max };
-            }
-            if (searchFields && searchFields.category) {
-                const categoryConditions = [];
-                if (Array.isArray(searchFields.category.mainCategory) && searchFields.category.mainCategory.length > 0) {
-                    categoryConditions.push({ 'category.mainCategory': { $in: searchFields.category.mainCategory } });
-                }
-                if (Array.isArray(searchFields.category.subCategory) && searchFields.category.subCategory.length > 0) {
-                    categoryConditions.push({ 'category.subCategory': { $in: searchFields.category.subCategory } });
-                }
+        if (name) {
+            const regex = new RegExp(name, 'i');
+            searchBody.name = { $regex: regex };
+        }
 
-                if (categoryConditions.length > 0) {
-                    searchBody.$or = categoryConditions;
+        if (priceRange && priceRange.min && priceRange.max) {
+            searchBody.price = { $gte: priceRange.min, $lte: priceRange.max };
+        }
+
+        if (category) {
+            const mainCategories = category.mainCategory || '';
+            const subCategories = category.subCategory || [];
+
+            // Tạo điều kiện tìm kiếm
+            const categoryConditions = [];
+
+            if (mainCategories) {
+                categoryConditions.push({ 'category.mainCategory': mainCategories  });
+                console.log('categoryConditions: ' + categoryConditions)
+
+                if (subCategories.length > 0) {
+                    categoryConditions.push({ 'category.subCategory': { $in: subCategories } });
                 }
+            }
+
+            if (categoryConditions.length > 0) {
+                searchBody.$and = categoryConditions;
             }
         }
-        const sortBy = searchFields && searchFields.sortBy || 'createAt';
-        const sortOrder = searchFields && searchFields.sortOrder === 'desc' ? -1 : 1;
-        const limit = searchFields && searchFields.limit || 0;
-        const page = searchFields && searchFields.page || 0;
-        let skip = 0;
-        if (page > 0 && limit > 0) {
-            skip = (page - 1) * limit;
-        }
+
         const countDocument = await productModel.find(searchBody).countDocuments();
-        console.log(searchBody);
-        const products = await productModel.find(searchBody).sort({ [sortBy]: sortOrder }).skip(skip).limit(limit)
+        const totalPages = Math.ceil(countDocument / limit);
+        const effectivePage = page > totalPages ? totalPages : page;
+        const skip = effectivePage > 0 ? (effectivePage - 1) * limit : 0;
+        const sort = sortBy === "" ? 'createAt' : sortBy
+        const order = sortOrder === 'desc' ? -1 : 1
+
+        const products = await productModel.find(searchBody, { variations: 0 })
+            .sort({ [sort]: order })
+            .skip(skip)
+            .limit(limit);
+
         if (!products || products.length === 0) {
             console.log('No products found');
-            return null;
+            return { products: [], countDocument };
         }
+
         return { products, countDocument };
     } catch (error) {
-        console.log('searchProducts Error(Service): ' + error)
+        console.log('searchProducts Error(Service): ' + error);
     }
 }
 
@@ -374,12 +383,13 @@ const checkProductVariationStock = async (id, size, color) => {
         return null;
     }
 }
-module.exports = { 
-    updateQuantityAndSoldInQuery, 
-    deleteProduct, addProduct, 
-    deleteAttributesInProduct, 
-    getProductsByPageByCategories, 
-    getAllProduct, getProductsByPage, 
-    updateProduct, getProductByID, 
-    searchProducts, checkProductVariationStock }
+module.exports = {
+    updateQuantityAndSoldInQuery,
+    deleteProduct, addProduct,
+    deleteAttributesInProduct,
+    getProductsByPageByCategories,
+    getAllProduct, getProductsByPage,
+    updateProduct, getProductByID,
+    searchProducts, checkProductVariationStock
+}
 
