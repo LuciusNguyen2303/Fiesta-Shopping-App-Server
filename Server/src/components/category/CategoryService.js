@@ -49,4 +49,15 @@ const deleteCategory = async (
         console.log(`Editing new category error (Service)${error}`);
     }
 }
-module.exports = { addCategory, getAllCategory, editCategory,deleteCategory }
+const getCategoryByID = async (id) => {
+    try {
+        console.log(`ID la ${id}`);
+        const result = await categoryModel.findById(id)
+        if (result)
+            return result
+        return null
+    } catch (error) {
+        console.log(`get category by id error (Service)${error}`);
+    }
+}
+module.exports = { addCategory, getAllCategory, editCategory,deleteCategory, getCategoryByID }
