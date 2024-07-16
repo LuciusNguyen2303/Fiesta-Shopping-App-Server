@@ -64,4 +64,14 @@ const deleteCategory = async (
         console.log(`Editing new category error (Controller)${error}`);
     }
 }
-module.exports = { deleteCategory, addCategory, editCategory, getAllCategory }
+const getCategoryByID = async (id) => {
+    try {
+        const result = await categoryService.getCategoryByID(id)
+        if (result)
+            return result
+            return null
+    } catch (error) {
+        console.log(`get category by id error (controller): ${error}`);
+    }
+}
+module.exports = { deleteCategory, addCategory, editCategory, getAllCategory, getCategoryByID }

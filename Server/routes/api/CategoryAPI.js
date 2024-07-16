@@ -50,10 +50,10 @@ router.get('/getCategory', async (req, res, next) => {
 
         const data = await categoryController.getAllCategory()
         if (data)
-            return res.status(200).json({ result: true,data:data, statusCode: 200 })
+            return res.status(200).json({ result: true, data: data, statusCode: 200 })
 
         return res.status(200).json({
-            result: false, statusCode: 204,data:null
+            result: false, statusCode: 204, data: null
         })
     } catch (error) {
 
@@ -64,7 +64,7 @@ router.get('/getCategory', async (req, res, next) => {
 });
 router.post('/deleteCategory/:id', async (req, res, next) => {
     try {
-        const {id} = req.params;
+        const { id } = req.params;
 
         if (id) {
             const result = await categoryController.deleteCategory(id)
@@ -81,4 +81,15 @@ router.post('/deleteCategory/:id', async (req, res, next) => {
 
     }
 });
+router.get('/getCategorybyId', async (req, res, next) => {
+    try {
+        const { id } = req.query;
+        const result = await categoryController.getCategoryByID(id);
+        if (result)
+            return res.status(200).json({ result: true, data: result, message: 'get category by id success' })
+        return res.status(200).json({ result: false, message: 'get category by id success' })
+    } catch (error) {
+        return res.status(500).json({ result: false, message: 'get category by id error (Api): ' + error })
+    }
+})
 module.exports = router;
