@@ -3,7 +3,7 @@ const router = express.Router();
 const cartController = require("../../src/components/cart/cartController")
 
 // http://localhost:3000/api/cart/
-router.post("/add", async (req, res, nex) => {
+router.post("/add", async (req, res, next) => {
     try {
         const { addFields } = req.body;
 
@@ -47,6 +47,7 @@ router.post("/delete", async (req, res, nex) => {
 router.get("/getByPage/:page/:userId", async (req, res, nex) => {
     try {
         const { page, userId } = req.params;
+        console.log(page, userId);
         const request = await cartController.getCartsByPage(userId, page)
         return request ?
             res.status(200).json({ result: true, statusCode: 200, message: 'getByPage succesfully',data:request }) :

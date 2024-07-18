@@ -1,5 +1,5 @@
 const { skip } = require('../public method/page');
-const cartService = require('./cartService');
+const cartService = require('./cartService')
 const LIMIT = require('../public method/constant');
 const CustomError = require("../../HandleError");
 
@@ -10,25 +10,25 @@ const addCarts = async (addFields) => {
         const keys=Object.keys(addFields);
         if (!keys.includes("userId")||!keys.includes("productId")||!keys.includes("variationId")||!keys.includes("quantity"))
             throw new CustomError("No userId or products in addFields", 500)
-
+      
         return await cartService.addCart(addFields)
     } catch (error) {
-        console.log('addCart error(Controller): ' + err);
+        console.log('addCart error(Controller): ' + error);
         return false;
     }
 }
 const getCartsByPage = async (userId, page) => {
 
-    try {
+    // try {
         if (!userId || !page)
             throw new CustomError("No userId or page !", 500)
-        console.log(skip(LIMIT, page));
+        console.log(">>>>>>CONTROLLER",skip(LIMIT, page));
 
         return await cartService.getCartsByPage(userId, skip(LIMIT, page))
-    } catch (error) {
-        console.log('getCartsByPage error(Controller): ' + err);
-        return false;
-    }
+    // } catch (error) {
+    //     console.log('getCartsByPage error(Controller): ' + error);
+    //     return false;
+    // }
 }
 const updateCart = async (cartID, updateFields) => {
 
@@ -40,7 +40,7 @@ const updateCart = async (cartID, updateFields) => {
 
         return await cartService.updateCart(cartID, updateFields)
     } catch (error) {
-        console.log('updateCart error(Controller): ' + err);
+        console.log('updateCart error(Controller): ' + error);
         return false;
     }
 }
@@ -53,7 +53,7 @@ const deleteCart = async (cartID, variationIds) => {
 
         return await cartService.deleteCart(cartID, variationIds)
     } catch (error) {
-        console.log('deleteCart error(Controller): ' + err);
+        console.log('deleteCart error(Controller): ' + error);
         return false;
     }
 }

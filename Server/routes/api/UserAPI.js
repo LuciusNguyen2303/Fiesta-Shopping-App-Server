@@ -8,7 +8,7 @@ const { AuthorizedForAdmin, AuthorizedForCustomer, AuthorizedForStaff } = requir
 const {uploadFile} = require("../../src/middleware/UploadFile")
 const fs = require('fs');
 const { hostAddingImageToCDN, hostUpdateImageToCDN } = require('./ImageMethod/ImageMethod');
-// http://localhost:3000/api/userApi/
+// http://localhost:3000/api/userApi/addUser
 
 router.post('/addUser', [addUser_Validation], async (req, res, next) => {
     try {
