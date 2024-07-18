@@ -11,9 +11,9 @@ function skip(limit, page) {
     // 
     /* 
     */
-    if (page == 1)
+    if (page <= 1)
         return 0;
-    if (page <= 0)
+    if (page < 0)
         return null;
     if (page > 1) {
         const page2 = page - 1;

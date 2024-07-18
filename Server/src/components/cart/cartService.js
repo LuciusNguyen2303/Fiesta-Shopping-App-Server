@@ -1,6 +1,6 @@
 const cartModel = require("./cartModel")
 const CustomError = require("../../HandleError");
-const LIMIT = require("../public method/constant");
+const {LIMIT} = require("../public method/constant");
 const { totalPages } = require("../public method/page");
 const ProductModel = require("../product/ProductModel");
 
@@ -32,7 +32,9 @@ const updateCart = async (cartID, updateFields) => {
 }
 const addCart = async (addFields) => {
     try {
-
+        const checked = await cartModel.findOne({ userId: addFields.userId, productId: addFields.productId, variationId: addFields.variationId })
+        if (checked)
+            return await cartModel.findOneAndUpdate({ _id: checked._id }, { quantity: checked.quantity + addFields.quantity })
         const newP = new cartModel(addFields);
         return await newP.save();
 
@@ -44,10 +46,49 @@ const addCart = async (addFields) => {
 const getCartsByPage = async (userId, page) => {
     try {
         let totalDocument = 0;
-        const result = await cartModel.find({ userId: userId }).limit(LIMIT).skip(page);
+        console.log(userId,page,LIMIT);
+        const result = await cartModel.aggregate([
+            {
+                $match: {
+                    userId: userId,
+                },
+            },
+            {
+                $lookup: {
+                    from: "products",
+                    localField: "productId",
+                    foreignField: "_id",
+                    as: "products",
+                },
+            },
+            {
+                $unwind: "$products",
+            },
+            {
+                $project: {
+                    _id: 1,
+                    userId: 1,
+                    quantity: 1,
+                    "products._id": 1,
+                    "products.name": 1,
+                    "products.price": 1,
+                    "products.variations": {
+                        $filter: {
+                            input: "$products.variations",
+                            as: "variation",
+                            cond: {
+                                $in: ["$$variation._id", ["$variationId"]],
+                            },
+                        },
+                    },
+                },
+            },
+        ]).limit(LIMIT).skip(page);
+
+        // const result = await cartModel.find({ userId: userId }).limit(LIMIT).skip(page);
         if (page == 0)
             totalDocument = await cartModel.find({ userId: userId }).countDocuments();
-        console.log(totalDocument);
+        console.log(">>>>>",totalDocument);
         return { result: result, pages: page == 0 && totalDocument > 0 ? totalPages(totalDocument, LIMIT) : null }
     } catch (error) {
         console.log('getAllProduct Error(Service): ' + error);
