@@ -5,7 +5,6 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 const cors = require('cors')
 const mongoose = require('mongoose')
-const cors = require('cors')
 const rateLimit = require('express-rate-limit')
 var indexRouter = require('./routes/index');
 var productRouter = require('./routes/api/ProductAPI')

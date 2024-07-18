@@ -34,7 +34,7 @@ const authenticateToken = async (req, res, next) => {
         const decoded = jwt.decode(token)
         const result = await checkRefreshToken(decoded);
         if (result) {
-            return res.status(400).json({ result: true,token:createAccessToken(decoded), message: "NEWACCESSTOKEN" });
+            return res.status(401).json({ result: true,token:createAccessToken(decoded), message: "NEWACCESSTOKEN" });
         }
         return res.status(400).json({ result: false, token:null,message: "Refresh token error: "+check.message });
     } else {
