@@ -1,6 +1,7 @@
 const express = require('express')
 const router = express.Router();
 const categoryController = require('../../src/components/category/CategoryController')
+const {uploadFile} = require("../../src/middleware/UploadFile")
 
 // http://localhost:3000/api/category/addCategory
 
@@ -81,6 +82,7 @@ router.post('/deleteCategory/:id', async (req, res, next) => {
 
     }
 });
+
 router.get('/getCategorybyId', async (req, res, next) => {
     try {
         const { id } = req.query;
@@ -92,4 +94,24 @@ router.get('/getCategorybyId', async (req, res, next) => {
         return res.status(500).json({ result: false, message: 'get category by id error (Api): ' + error })
     }
 })
+
+router.post('/deleteTheItemsCategory/:id', async (req, res, next) => {
+    try {
+        const {id} = req.params;
+        const {data}=req.body
+        if (id) {
+            const result = await categoryController.deleteAnItemSubcategory(id,data)
+            if (result)
+                return res.status(200).json({ result: true, statusCode: 200 })
+        }
+        return res.status(200).json({
+            result: false, statusCode: 204
+        })
+    } catch (error) {
+
+        console.error(`Editing new category error (API): ${error}`);
+        return res.status(500).json({ result: false, statusCode: 500, message: `Error: ${error}` })
+
+    }
+});
 module.exports = router;

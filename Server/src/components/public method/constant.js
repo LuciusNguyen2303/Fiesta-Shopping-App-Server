@@ -1,2 +1,3 @@
  const LIMIT = 30
- module.exports =LIMIT
+ const CustomerUpdateFields=['name','gender','phoneNumber','avatar','address']
+ module.exports ={LIMIT,CustomerUpdateFields}
