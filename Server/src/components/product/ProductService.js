@@ -1,5 +1,6 @@
 
 const CustomError = require('../../HandleError');
+const { uploadMultipleImages, uploadImage, deleteImages } = require('../public method/ImageMethod/ImageMethods');
 const LIMIT = require('../public method/constant');
 const { totalPages } = require('../public method/page');
 const productModel = require('./ProductModel')
@@ -10,10 +11,24 @@ const ObjectId = mongoose.Types.ObjectId
 const addProduct = async (
     category, name, image, price, stock, brand, rating, Description, variations) => {
     try {
+        // Send image to host Imagekit 
+        const images = await uploadMultipleImages(image, "Products")
+        // Send image of variations to host imagekit
+        if (variations && Array.isArray(variations)) {
+            const variationPromises = variations.map(async (item, index) => {
+                if (Object.keys(item).includes("image")) {
+                    const imageURL = await uploadImage(item["image"], "Products");
+                    item.image = imageURL
+                }
+
+                return item;
+            })
+            variations = await Promise.all(variationPromises);
+        }
         const newProduct = {
-            category, name, image, price, stock, brand, rating, Description, variations
+            category, name, images, price, stock, brand, rating, Description, variations
         };
-        console.log('addProduct data: ' + JSON.stringify(newProduct));
+
         const newP = new productModel(newProduct);
         return await newP.save();
     } catch (err) {
@@ -58,38 +73,59 @@ const getProductsByPageByCategories = async (page) => {
     }
 }
 
-function generateUpdateQueryVariations(updateFields) {
+function generateUpdateQuery(updateFields) {
     let queryUpdate = {
-        $set: {
+        $set: {}
+    };
+    let arrayFilter = [], deleteImageArr = [], updatedImagesArr = [];
 
-        }
-    }
-    let arrayFilter = [
-    ]
     try {
-        updateFields.variations.forEach((item, index) => {
+        // Kiểm tra nếu updateFields có thuộc tính variations và variations là một mảng
+        if (!updateFields.variations || !Array.isArray(updateFields.variations)) {
+            throw new Error("Invalid input: updateFields.variations should be a non-empty array");
+        }
+        // Query Update for the images of a products
+
+      
+        // Query Update for the variations of a product
+
+        for (let index = 0; index < updateFields.variations.length; index++) {
+            let item = updateFields.variations[index];
             let variationsKeys = Object.keys(item);
+
             if (variationsKeys.length > 1) {
+
                 const _id = item._id;
                 let keyArr = `elements${index}`;
 
-                variationsKeys.forEach((itemVariations, index) => {
+                for (let itemVariations of variationsKeys) {
                     if (itemVariations !== "_id" && itemVariations) {
-                        let key = `variations.$[${keyArr}].${itemVariations}`
+                        let key = `variations.$[${keyArr}].${itemVariations}`;
 
                         if (itemVariations == "dimension") {
-                            Object.keys(item.dimension).forEach((itemDimensions, index) => {
+                            for (let itemDimensions of Object.keys(item.dimension)) {
                                 queryUpdate = {
                                     ...queryUpdate,
                                     $set: {
                                         ...queryUpdate.$set,
                                         [key + `.${itemDimensions}`]: item[itemVariations][itemDimensions]
                                     }
-                                }
-
-                            })
-                            return
+                                };
+                            }
+                            continue;
                         }
+
+                        if (itemVariations == "subImage") {
+                            queryUpdate = {
+                                ...queryUpdate,
+                                $set: {
+                                    ...queryUpdate.$set,
+                                    [key]: item["subImage"]
+                                }
+                            };
+                            continue;
+                        }
+
                         queryUpdate = {
                             ...queryUpdate,
                             $set: {
@@ -98,19 +134,19 @@ function generateUpdateQueryVariations(updateFields) {
                             }
                         };
                     }
+                }
 
-                })
-                arrayFilter.push({ [keyArr + "._id"]: _id })
+                arrayFilter.push({ [`${keyArr}._id`]: _id });
             }
-        })
+        }
     } catch (error) {
         console.log("ERROR generateQueryVariations: " + error);
+        return null;
     }
 
     console.log(JSON.stringify(queryUpdate), JSON.stringify(arrayFilter));
 
-    return { query: queryUpdate, filter: arrayFilter }
-
+    return { query: queryUpdate, filter: arrayFilter };
 }
 
 function generateDeleteQueryVariations(updateFields) {
@@ -281,14 +317,9 @@ const deleteProduct = async (productIDs) => {
 const updateProduct = async (productID, updateFileds) => {
     try {
         let productUpdated = false;
-        if (Object.keys(updateFileds).includes("variations")) {
-            const updateData = generateUpdateQueryVariations(updateFileds)
-            if (updateData)
-                productUpdated = productModel.findByIdAndUpdate(productID, updateData.query, { arrayFilters: updateData.filter })
 
-        } else
-            productUpdated = await productModel.findByIdAndUpdate(productID, updateFileds, { new: true })
-
+        productUpdated = await productModel.findByIdAndUpdate(productID, updateFileds, { new: true })
+        console.timeEnd("QUERY UPDATE>>>")
         return !productUpdated ?
             console.log('Product not found') : productUpdated
     } catch (error) {
@@ -383,13 +414,36 @@ const checkProductVariationStock = async (id, size, color) => {
         return null;
     }
 }
-module.exports = {
-    updateQuantityAndSoldInQuery,
-    deleteProduct, addProduct,
-    deleteAttributesInProduct,
-    getProductsByPageByCategories,
-    getAllProduct, getProductsByPage,
-    updateProduct, getProductByID,
-    searchProducts, checkProductVariationStock
+
+const findPriceInProducts = async (data) => {
+    try {
+        const result = await productModel.aggregate([
+            {
+                $match: {
+                    _id: { $in: data.productIds }
+                }
+            },
+            {
+                $unwind: "$variations"
+            },
+            {
+                $match: {
+                    "variations._id": { $in: data.variationIds }
+                }
+            },
+            {
+                $project: {
+                    productId: "$_id",
+                    variationId: "$variations._id",
+                    price: "$variations.price"
+                }
+            }
+        ]).exec()
+        return result ? result : null;
+    } catch (error) {
+        console.log('searchProducts Error(Service): ' + error)
+    }
 }
+module.exports = { checkProductVariationStock,findPriceInProducts, updateQuantityAndSoldInQuery, deleteProduct, addProduct, deleteAttributesInProduct, getProductsByPageByCategories, getAllProduct, getProductsByPage, updateProduct, getProductByID, searchProducts }
+
 

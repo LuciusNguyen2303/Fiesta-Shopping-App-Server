@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const productController = require('../../src/components/product/ProductController')
+const {uploadFile} = require("../../src/middleware/UploadFile")
 
 // http://localhost:3000/api/productApi/addProduct
 // Thêm sản phẩm
@@ -128,6 +129,17 @@ router.post('/updateProduct', async (req, res, next) => {
 
 // Lấy thông tin sản phẩm theo ID
 router.get('/getProductByID', async (req, res, next) => {
+    try {
+        let { productID } = req.query
+        const product = await productController.getProductByID(productID);
+        return product ?
+            res.status(200).json({ result: true, message: 'getProductByID succesfully', data: product }) :
+            res.status(400).json({ result: false, message: 'getProductByID failed' })
+    } catch (error) {
+        return res.status(500).json({ result: false, message: 'getProductByID Error(Api): ' + error })
+    }
+})
+router.get('/getProductByIDda', async (req, res, next) => {
     try {
         let { productID } = req.query
         const product = await productController.getProductByID(productID);
