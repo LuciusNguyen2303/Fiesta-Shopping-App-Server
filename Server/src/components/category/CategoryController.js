@@ -93,5 +93,5 @@ const deleteAnItemSubcategory = async (id, data) => {
         return false
     }
 }
-module.exports = { deleteAnItemSubcategory,deleteCategory, addCategory, editCategory, getAllCategory }
+module.exports = { deleteAnItemSubcategory,deleteCategory, addCategory, editCategory, getAllCategory, getCategoryByID }
 
