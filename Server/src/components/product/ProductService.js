@@ -304,7 +304,7 @@ const deleteProduct = async (productIDs) => {
                     $in: productIDs
                 }
             }
-            , { hidden: 1 }, { new: true });
+            , { hidden: true }, { new: true });
         if (!result)
             throw new CustomError("Couldn't delete product. (Service)")
         return result
@@ -350,7 +350,7 @@ const searchProducts = async (req) => {
                 const regex = new RegExp(searchFields.name, 'i');
                 searchBody.name = { $regex: regex };
             }
-            
+            searchBody.hidden=false
 
             if (searchFields && searchFields.priceRange && searchFields.priceRange.min && searchFields.priceRange.max) {
                 searchBody.price = { $gte: searchFields.priceRange.min, $lte: searchFields.priceRange.max };
