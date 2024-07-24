@@ -7,12 +7,13 @@ const { IdTokenClient } = require('google-auth-library')
 const LIMIT = require('../public method/constant')
 const { createAccessToken, createRefreshToken, verifyRefreshToken } = require('../public method/jwtMethods')
 const { uploadImage } = require('../public method/ImageMethod/ImageMethods')
-const addUser = async (name, userName, password, gender) => {
+const addUser = async (name, userName, password) => {
     try {
         const checkUser = await userModel.findOne({ userName: userName })
+        console.log(checkUser);
         if (!checkUser) {
             const hashedPassword = await bcrypt.hash(password, 10)
-            const newUser = { name: name, userName: userName, password: hashedPassword, gender: gender }
+            const newUser = { name: name, userName: userName, password: hashedPassword}
             console.log('addUser data: ' + JSON.stringify(newUser))
             const newU = new userModel(newUser)
             return await newU.save()
@@ -25,7 +26,7 @@ const addUser = async (name, userName, password, gender) => {
 }
 const getUserbyId = async (id) => {
     try {
-        const result = await userModel.findOne({ _id: id }).select("_id name gender phoneNumber address userName avatar")
+        const result = await userModel.findOne({ _id: id }).select("_id name gender phoneNumber address userName image")
         return result
     } catch (error) {
         console.log('addUser Error(Service): ' + error);
@@ -118,7 +119,6 @@ const signIn = async (userName, password) => {
         const refreshToken = createRefreshToken(user)
         user.refreshToken = refreshToken;
         const result = await user.save();
-        console.log("ACCESS TOKEN: ", accessToken, "\nREFRESH TOKEN: ", refreshToken, "\n Does it save refreshToken?", refreshToken);
 
         if (result) {
             return accessToken
@@ -205,7 +205,8 @@ const UnlockUser = async (id) => {
 }
 const updateUserInfo = async (id, updateFields) => {
     try {
-      
+        
+        console.log(" updateUserInfo (service): " +JSON.stringify(updateFields));
         const result = await userModel.findByIdAndUpdate(id, updateFields,{new:true});
         return result
 
