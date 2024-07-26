@@ -130,8 +130,8 @@ router.post('/updateProduct', async (req, res, next) => {
 // Lấy thông tin sản phẩm theo ID
 router.get('/getProductByID', async (req, res, next) => {
     try {
-        let { productID } = req.query
-        const product = await productController.getProductByID(productID);
+        let { id } = req.query
+        const product = await productController.getProductByID(id);
         return product ?
             res.status(200).json({ result: true, message: 'getProductByID succesfully', data: product }) :
             res.status(400).json({ result: false, message: 'getProductByID failed' })
@@ -177,7 +177,6 @@ router.post('/deleteProduct', async (req, res, next) => {
 // Tìm kiếm sản phẩm theo điều kiện
 router.get('/searchProducts', async (req, res, next) => {
     try {
-
         const products = await productController.searchProducts(req);
         return products != null ?
             res.status(200).json({ result: true, message: 'searchProducts succesfully', data: products.products, documents: products.countDocument }) :
@@ -188,9 +187,10 @@ router.get('/searchProducts', async (req, res, next) => {
 })
 router.get('/checkVaritationProductStock', async (req, res, next) => {
     try {
-        const { id, size, color } = req.query;
-        const stock = await productController.checkProductVariationStock(id, size, color)
+        const stock = await productController.checkProductVariationStock(req)
+        if(stock)
         return res.status(200).json({ result: true, data: stock })
+        return res.status(200).json({ result: false, data: stock })
     } catch (error) {
         console.log('checkProductVariationStock error (Api): ' + error);
     }

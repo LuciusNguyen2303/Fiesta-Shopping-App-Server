@@ -115,22 +115,16 @@ const searchProducts = async (searchFields) => {
         return false;
     }
 }
-const checkProductVariationStock = async (productID, size, color) => {
+const checkProductVariationStock = async (checkFields) => {
     try {
-        if (productID) {
-            if (!size) {
-                return null;
-            }
-            if (!color) {
-                return null;
-            }
-            return await productService.checkProductVariationStock(productID, size, color)
+        if (checkFields) {
+            return await productService.checkProductVariationStock(checkFields)
         }
-        return false;
+        return null;
     } catch (error) {
         console.log('checkProductVariationStock Error(Controller): ' + error);
         return false;
     }
 }
 
-module.exports = { findPriceInProducts, deleteProduct, addProduct, deleteAttributesInProduct, getProductsByPage, getAllProduct, updateProduct, getProductByID, searchProducts }
+module.exports = { findPriceInProducts, deleteProduct, addProduct, deleteAttributesInProduct, getProductsByPage, getAllProduct, updateProduct, getProductByID, searchProducts, checkProductVariationStock }
