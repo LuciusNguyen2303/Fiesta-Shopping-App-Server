@@ -55,7 +55,7 @@ app.use('/api/payment', paymentRouter)
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
-  next(createError(404));
+   next(createError(404));
 });
 
 // error handler
@@ -72,6 +72,6 @@ app.use(function (err, req, res, next) {
     'Access-Control-Allow-Headers',
     'Origin, X-Requested-With, Content-Type, Accept'
   );
-  next();
+    
 });
 module.exports = app;
