@@ -18,17 +18,19 @@ const deleteCart = async (cartID) => {
     }
 }
 const updateCart = async (cartID, updateFields) => {
-    try {
-        const result = cartModel.findByIdAndUpdate(
+    // try {
+    
+        const result = await cartModel.findByIdAndUpdate(
             cartID
             , updateFields, { new: true });
-        if (!result)
-            throw new CustomError("Couldn't update your carts. (Service)")
+            console.log(result,cartID,updateFields);
+        // if (!result)
+        //     throw new CustomError("Couldn't update your carts. (Service)")
         return result
-    } catch (error) {
-        console.log("update your carts error (Service): " + error);
-        return false;
-    }
+    // } catch (error) {
+    //     console.log("update your carts error (Service): " + error);
+    //     return false;
+    // }
 }
 const addCart = async (addFields) => {
     try {
@@ -72,6 +74,7 @@ const getCartsByPage = async (userId, page) => {
                     "products._id": 1,
                     "products.name": 1,
                     "products.price": 1,
+                    "products.stock": 1,
                     "products.variations": {
                         $filter: {
                             input: "$products.variations",
