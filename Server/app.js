@@ -22,7 +22,7 @@ var app = express();
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   keyGenerator: (req, res) => req.ip,
-  max: 100, // limit each IP to 100 requests per windowMs
+  max: 500, // limit each IP to 100 requests per windowMs
   message: "Too many requests from this IP, please try again later."
 });
 
@@ -72,6 +72,5 @@ app.use(function (err, req, res, next) {
     'Access-Control-Allow-Headers',
     'Origin, X-Requested-With, Content-Type, Accept'
   );
-  next();
 });
 module.exports = app;

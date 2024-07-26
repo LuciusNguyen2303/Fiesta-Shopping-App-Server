@@ -86,7 +86,7 @@ function generateUpdateQuery(updateFields) {
         }
         // Query Update for the images of a products
 
-      
+
         // Query Update for the variations of a product
 
         for (let index = 0; index < updateFields.variations.length; index++) {
@@ -363,7 +363,7 @@ const searchProducts = async (req) => {
             const categoryConditions = [];
 
             if (mainCategories) {
-                categoryConditions.push({ 'category.mainCategory': mainCategories  });
+                categoryConditions.push({ 'category.mainCategory': mainCategories });
                 console.log('categoryConditions: ' + categoryConditions)
 
                 if (subCategories.length > 0) {
@@ -399,14 +399,37 @@ const searchProducts = async (req) => {
     }
 }
 
-const checkProductVariationStock = async (id, size, color) => {
+const checkProductVariationStock = async (req) => {
     try {
+        const {id, size, color} = req.query
         const product = await productModel.findById(id, 'variations');
-        if (product && product.variations && product.variations.length > 0) {
-            const variation = product.variations.find(item => item.dimension.size === size && item.dimension.color === color);
-            if (variation) {
-                return variation.stock;
+        if (product && product.variations && Array.isArray(product.variations) && product.variations.length > 0) {
+            let totalStock = 0;
+
+            if (size && color) {
+                totalStock = product.variations.reduce((sum, item) => {
+                    if (item.dimension.size === size && item.dimension.color === color) {
+                        return sum + item.stock;
+                    }
+                    return sum;
+                }, 0);
+            } else if (size) {
+                totalStock = product.variations.reduce((sum, item) => {
+                    if (item.dimension.size === size) {
+                        return sum + item.stock;
+                    }
+                    return sum;
+                }, 0);
+            } else if (color) {
+                totalStock = product.variations.reduce((sum, item) => {
+                    if (item.dimension.color === color) {
+                        return sum + item.stock;
+                    }
+                    return sum;
+                }, 0);
             }
+
+            return totalStock;
         }
         return null;
     } catch (error) {
@@ -444,6 +467,6 @@ const findPriceInProducts = async (data) => {
         console.log('searchProducts Error(Service): ' + error)
     }
 }
-module.exports = { checkProductVariationStock,findPriceInProducts, updateQuantityAndSoldInQuery, deleteProduct, addProduct, deleteAttributesInProduct, getProductsByPageByCategories, getAllProduct, getProductsByPage, updateProduct, getProductByID, searchProducts }
+module.exports = { checkProductVariationStock, findPriceInProducts, updateQuantityAndSoldInQuery, deleteProduct, addProduct, deleteAttributesInProduct, getProductsByPageByCategories, getAllProduct, getProductsByPage, updateProduct, getProductByID, searchProducts }
 
 
