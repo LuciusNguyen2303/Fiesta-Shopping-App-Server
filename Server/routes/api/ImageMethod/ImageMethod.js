@@ -43,7 +43,7 @@ const hostUpdateImageToCDN = async (data, req, pathR) => {
     try {
         // Images
         if (req.files['images']) {
-            req.files['images'].map(async (file) => {
+            await Promise.all(req.files['images'].map(async (file) => {
                 if (Array.isArray(data.images)) {
                     data.images.forEach(async (item, index) => {
                         const keys = Object.keys(item);
@@ -60,22 +60,30 @@ const hostUpdateImageToCDN = async (data, req, pathR) => {
                         }
                     })
                 } else {
-                    const binaryData = fs.readFileSync(file.path);
-                    const base64 = binaryData.toString('base64')
-                    const result = await uploadImage(base64, pathR)
-                    fs.unlinkSync(file.path);
-                    data.image = result;
+                    const item= data.image
+                    const set = new Set( Object.keys(item))
+                    if (set.has("id")) {
+                        await deleteImages([item.id])
+                    }
+                    if (set.has("url") && !regex.test(item["url"])) {
+                        const binaryData = fs.readFileSync(file.path);
+                        const base64 = binaryData.toString('base64')
+                        const result = await uploadImage(base64, pathR)
+                        fs.unlinkSync(file.path);
+                        data.image = result;
+                    }
+                 
+                    console.log(">>>CHECK IMAGE: " + data.image);
                 }
 
-            });
+            }));
 
         }
-
-
+        console.log(">>>CHECK IMAGE DATA: " + JSON.stringify(data));
         // subImages
         if (req.files['subImages']) {
             const variationFiles = req.files['subImages'];
-            variationFiles.forEach(async (file, index) => {
+            await Promise.all( variationFiles.forEach(async (file, index) => {
                 if (typeof data.variations !== "undefined")
                     data.variations.forEach(async (item, index) => {
                         const keys = Object.keys(item?.subImage);
@@ -105,8 +113,9 @@ const hostUpdateImageToCDN = async (data, req, pathR) => {
                             item.subImage = image
                         }
                     })
-            });
+            }));
         }
+
         return data
     } catch (error) {
         console.log("hostAddingImageToCDN: " + error);

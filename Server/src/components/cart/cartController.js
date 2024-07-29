@@ -44,14 +44,13 @@ const updateCart = async (cartID, updateFields) => {
         return false;
     }
 }
-const deleteCart = async (cartID, variationIds) => {
+const deleteCart = async (cartID) => {
     try {
         if (!cartID)
             throw new CustomError("No cartID !!!", 500)
-        if (!variationIds)
-            throw new CustomError("No variationIds !!!", 500)
 
-        return await cartService.deleteCart(cartID, variationIds)
+
+        return await cartService.deleteCart(cartID)
     } catch (error) {
         console.log('deleteCart error(Controller): ' + error);
         return false;
