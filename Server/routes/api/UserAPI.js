@@ -5,18 +5,19 @@ const userController = require('../../src/components/user/UserController')
 const { addUser_Validation } = require('../../src/middleware/userValidation');
 const { authenticateToken, authenticateTokenGG } = require('../../src/middleware/jwtValidation')
 const { AuthorizedForAdmin, AuthorizedForCustomer, AuthorizedForStaff } = require("../../src/middleware/Authorized");
-const {uploadFile} = require("../../src/middleware/UploadFile")
+const { uploadFile } = require("../../src/middleware/UploadFile")
 const fs = require('fs');
 const { hostAddingImageToCDN, hostUpdateImageToCDN } = require('./ImageMethod/ImageMethod');
 // http://localhost:3000/api/userApi/addUser
 
 router.post('/addUser', [addUser_Validation], async (req, res, next) => {
     try {
-        const { name, userName, password, gender } = req.body;
-        const newUser = await userController.addUser(name, userName, password, gender);
+        const { name, userName, password } = req.body;
+        console.log(name, userName, password);
+        const newUser = await userController.addUser(name, userName, password);
         return newUser ?
-            res.status(200).json({ result: true, message: 'addUser successfully', data: newUser }) :
-            res.status(400).json({ result: false, message: 'Username already exists', data: null })
+            res.status(200).json({ result: true, message: 'addUser successfully' }) :
+            res.status(400).json({ result: false, message: 'Username already exists' })
     } catch (error) {
         return res.status(500).json({ result: false, message: 'addUser Error(Api): ' + error })
     }
@@ -46,8 +47,8 @@ router.get("/getUserInfo/:id", async (req, res, next) => {
     try {
         const { id } = req.params;
         const data = await userController.getUserbyId(id)
-        return data?res.status(200).json({ user: data, statusCode: 200, message: "Get the user's information successfully" })
-                :res.status(400).json({ user: data, statusCode: 200, message: "No user available!!" })
+        return data ? res.status(200).json({ user: data, statusCode: 200, message: "Get the user's information successfully" })
+            : res.status(400).json({ user: data, statusCode: 200, message: "No user available!!" })
     } catch (error) {
         return res.status(500).json({ error: error, statusCode: 500 })
     }
@@ -72,13 +73,17 @@ router.post('/testAuthen', [uploadFile], async (req, res, next) => {
     }
 })
 
-router.post('/updateUser/:id', async (req, res, next) => {
+router.post('/updateUser/:id', [uploadFile], async (req, res, next) => {
     try {
         const { id } = req.params
         const { updateFields } = req.body;
-        const result = await userController.updateUserInfo(id, updateFields)
+        const updatedData = await hostUpdateImageToCDN(JSON.parse(updateFields), req, "Users")
+        // console.log(">>>updatedData",JSON.stringify(updatedData))
+        const result = await userController.updateUserInfo(id, updatedData)
 
-        return res.status(200).json({ result: true, data: result })
+        return result ? res.status(200).json({ result: true, data: result }) :
+            res.status(400).json({ result: false, data: result })
+
 
     } catch (error) {
         return res.status(500).json({ result: false, message: 'updateUser Error(Api): ' + error })

@@ -1,9 +1,9 @@
 const CustomError = require('../../HandleError');
 const { CustomerUpdateFields, cleanObject } = require('../public method');
 const userService = require('./UserService')
-const addUser = async (name, userName, password, gender) => {
+const addUser = async (name, userName, password) => {
     try {
-        return await userService.addUser(name, userName, password, gender)
+        return await userService.addUser(name, userName, password)
     } catch (error) {
         console.log('addUser Error(Controller): ' + error);
     }
@@ -105,8 +105,7 @@ const updateUserInfo = async (id, updateFields) => {
     try {
         if (!id)
             throw new CustomError("No id to update the user's info!!!!")
-        
-        if (typeof updateFields !== 'object' && updateFields)
+        if (!updateFields)
             throw new CustomError("No updateFields to update the user's info!!!!")
         
         return await userService.updateUserInfo(id, cleanObject(updateFields,CustomerUpdateFields));

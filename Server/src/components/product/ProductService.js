@@ -304,7 +304,7 @@ const deleteProduct = async (productIDs) => {
                     $in: productIDs
                 }
             }
-            , { hidden: 1 }, { new: true });
+            , { hidden: true }, { new: true });
         if (!result)
             throw new CustomError("Couldn't delete product. (Service)")
         return result
@@ -343,9 +343,16 @@ const getProductByID = async (productID) => {
 
 const searchProducts = async (req) => {
     try {
+
         const { name, priceRange, category, sortBy, sortOrder, limit = 0, page = 0 } = req.query;
         let searchBody = {};
 
+        if (searchFields) {
+            if (searchFields && searchFields.name) {
+                const regex = new RegExp(searchFields.name, 'i');
+                searchBody.name = { $regex: regex };
+            }
+        }
         if (name) {
             const regex = new RegExp(name, 'i');
             searchBody.name = { $regex: regex };

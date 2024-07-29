@@ -22,7 +22,7 @@ router.post("/update", async (req, res, nex) => {
         const { updateFields } = req.body;
         const { cartID} = req.query;
         const request = await cartController.updateCart(cartID,updateFields)
-
+        console.log(request);
         return request ?
             res.status(200).json({ result: true, statusCode: 200, message: 'update succesfully' }) :
             res.status(400).json({ result: false, statusCode: 400, message: 'update failed' })
@@ -33,8 +33,8 @@ router.post("/update", async (req, res, nex) => {
 })
 router.post("/delete", async (req, res, nex) => {
     try {
-        const { cartID, variationIds } = req.body;
-        const request = await cartController.deleteCart(cartID, variationIds)
+        const { cartID } = req.query;
+        const request = await cartController.deleteCart(cartID)
 
         return request ?
             res.status(200).json({ result: true, statusCode: 200, message: 'delete succesfully' }) :
