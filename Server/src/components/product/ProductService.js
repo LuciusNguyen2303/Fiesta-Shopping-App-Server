@@ -347,12 +347,6 @@ const searchProducts = async (req) => {
         const { name, priceRange, category, sortBy, sortOrder, limit = 0, page = 0 } = req.query;
         let searchBody = {};
 
-        if (searchFields) {
-            if (searchFields && searchFields.name) {
-                const regex = new RegExp(searchFields.name, 'i');
-                searchBody.name = { $regex: regex };
-            }
-        }
         if (name) {
             const regex = new RegExp(name, 'i');
             searchBody.name = { $regex: regex };
