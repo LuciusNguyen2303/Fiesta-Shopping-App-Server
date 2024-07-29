@@ -401,35 +401,21 @@ const searchProducts = async (req) => {
 
 const checkProductVariationStock = async (req) => {
     try {
-        const {id, size, color} = req.query
+        const { id, size, color } = req.query
         const product = await productModel.findById(id, 'variations');
         if (product && product.variations && Array.isArray(product.variations) && product.variations.length > 0) {
-            let totalStock = 0;
-
+            let variation;
             if (size && color) {
-                totalStock = product.variations.reduce((sum, item) => {
-                    if (item.dimension.size === size && item.dimension.color === color) {
-                        return sum + item.stock;
-                    }
-                    return sum;
-                }, 0);
+                variation = product.variations.find(item => item.dimension.size === size && item.dimension.color === color);
             } else if (size) {
-                totalStock = product.variations.reduce((sum, item) => {
-                    if (item.dimension.size === size) {
-                        return sum + item.stock;
-                    }
-                    return sum;
-                }, 0);
+                variation = product.variations.find(item => item.dimension.size === size);
             } else if (color) {
-                totalStock = product.variations.reduce((sum, item) => {
-                    if (item.dimension.color === color) {
-                        return sum + item.stock;
-                    }
-                    return sum;
-                }, 0);
+                variation = product.variations.find(item => item.dimension.color === color);
             }
-
-            return totalStock;
+            return variation ? {
+                _id: variation._id,
+                stock: variation.stock
+            } : 0;
         }
         return null;
     } catch (error) {
