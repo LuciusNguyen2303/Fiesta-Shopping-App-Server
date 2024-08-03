@@ -56,7 +56,21 @@ const deleteCart = async (cartID) => {
         return false;
     }
 }
+const deleteManyCarts = async (cartID) => {
+    try {
+        if (!cartID)
+            throw new CustomError("No cartID !!!", 500)
+
+
+        return await cartService.deleteManyCarts(cartID)
+    } catch (error) {
+        console.log('deleteCart error(Controller): ' + error);
+        return false;
+    }
+}
+
 module.exports = {
+    deleteManyCarts,
     addCarts,
     getCartsByPage,
     deleteCart,

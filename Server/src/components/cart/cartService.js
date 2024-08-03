@@ -17,6 +17,17 @@ const deleteCart = async (cartID) => {
         return false;
     }
 }
+const deleteManyCarts = async (cartIDs) => {
+    try {
+        const result = cartModel.deleteMany({_id:{$in:cartIDs}})
+        if (!result)
+            throw new CustomError("Couldn't delete your carts. (Service)")
+        return result
+    } catch (error) {
+        console.log("Delete your carts error (Service): " + error);
+        return false;
+    }
+}
 const updateCart = async (cartID, updateFields) => {
     // try {
     
@@ -71,6 +82,7 @@ const getCartsByPage = async (userId, page) => {
                     _id: 1,
                     userId: 1,
                     quantity: 1,
+                    variationId:1,
                     "products._id": 1,
                     "products.name": 1,
                     "products.price": 1,
@@ -97,4 +109,4 @@ const getCartsByPage = async (userId, page) => {
         console.log('getAllProduct Error(Service): ' + error);
     }
 }
-module.exports = { deleteCart, addCart, getCartsByPage, updateCart } 
+module.exports = { deleteManyCarts,deleteCart, addCart, getCartsByPage, updateCart } 
