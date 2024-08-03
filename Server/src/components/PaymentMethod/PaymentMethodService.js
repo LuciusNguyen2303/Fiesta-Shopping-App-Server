@@ -4,7 +4,7 @@ const PaymentMethodModel = require("./PaymentMethodModel")
 const insertPaymentMethod = async (addFields) => {
     try {
         const check = await PaymentMethodModel.exists({ userId: addFields.userId })
-        if (!check)
+        if (check)
             throw new CustomError("Already has the payment method for the user id!!!")
         const newPaymentMethod = new PaymentMethodModel(addFields);
         const result = await newPaymentMethod.save();
