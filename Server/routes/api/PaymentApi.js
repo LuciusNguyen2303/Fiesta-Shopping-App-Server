@@ -82,27 +82,34 @@ router.post('/cancelPaymentIntents/:paymentId/:userId', async (req, res, next) =
 
 router.post('/save-card', async (req, res, next) => {
     try {
-        const { userId, token, isDefault } = req.params;
+        const { userId, token, isDefault } = req.query;
+
+
         if (!userId || !token)
             throw new CustomError("Empty at least one fields!!! (UserId or token)")
+
 
         let result = null
         // Check payment method in db
         const availablePaymentMethod = await PaymentMethodController.getDefaultPaymentMethod(userId)
         const user = await UserController.getUserbyId(userId);
 
+        const newUser = {
+            name: user.name,
+        }
         if (!availablePaymentMethod) {
             // If not, create customer and attach the card into customer
             // Create default payment method in db 
             if (!user)
                 throw new CustomError("No available user!!")
-            const customer = await stripe.customers.create(user._doc);
+
+            const customer = await stripe.customers.create(newUser);
             const paymentId = await stripe.customers.createSource(
                 customer.id,
                 {
                     source: token
                 })
-            result = await PaymentMethodController.insertPaymentMethod({ userId: userId, defaultCard: paymentId, customerId: customer.id })
+            result = await PaymentMethodController.insertPaymentMethod({ userId: userId, defaultCard: paymentId.id, customerId: customer.id })
 
         } else {
             // create the card and attach to customer
@@ -114,20 +121,19 @@ router.post('/save-card', async (req, res, next) => {
                 })
             if (paymentId)
                 result = true
-
+                console.log(paymentId + 'this is payment.Id');
+                
             // save default in db (Optional)
             if (isDefault) {
-                availablePaymentMethod.defaultCard = paymentId
+                availablePaymentMethod.defaultCard = paymentId.id
                 result = await PaymentMethodController.updatePaymentMethod(availablePaymentMethod)
             }
-
-
 
         }
 
         return result !== null ?
             res.status(200).json({ result: true, message: "CREATE NEW CARD SUCCESFULLY !!!", statusCode: 200 })
-            : res.status(200).json({ result: false, message: "ERROR WHILE CREATE NEW CARD !!!", statusCode: 200 })
+            : res.status(400).json({ result: false, message: "ERROR WHILE CREATE NEW CARD !!!", statusCode: 400 })
     } catch (error) {
         console.log("ERROR SAVE CARD: ", error);
         return res.status(500).json({ message: error, statusCode: 500 })
