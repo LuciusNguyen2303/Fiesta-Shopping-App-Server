@@ -80,7 +80,7 @@ router.post('/cancelPaymentIntents/:paymentId/:userId', async (req, res, next) =
     }
 });
 
-router.get('/save-card', async (req, res, next) => {
+router.post('/save-card', async (req, res, next) => {
     try {
         const { userId, token, isDefault } = req.params;
         if (!userId || !token)
@@ -96,7 +96,7 @@ router.get('/save-card', async (req, res, next) => {
             // Create default payment method in db 
             if (!user)
                 throw new CustomError("No available user!!")
-            const customer = await stripe.customers.create(user);
+            const customer = await stripe.customers.create(user._doc);
             const paymentId = await stripe.customers.createSource(
                 customer.id,
                 {
