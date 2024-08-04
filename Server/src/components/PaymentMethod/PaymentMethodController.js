@@ -18,7 +18,7 @@ const insertPaymentMethod = async (addFields) => {
 const updatePaymentMethod = async (updateFields) => {
     try {
         const set = new Set(Object.keys(updateFields))
-        
+        console.log(set);
         if(!set.has("userId")&&!set.has("defaultCard"))
             throw new CustomError("Empty at least one field !!!")
         return await PaymentMethodService.updatePaymentMethod(updateFields)

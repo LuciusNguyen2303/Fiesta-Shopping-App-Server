@@ -90,9 +90,11 @@ router.post('/save-card', async (req, res, next) => {
 
 
         let result = null
-        // Check payment method in db
         const availablePaymentMethod = await PaymentMethodController.getDefaultPaymentMethod(userId)
         const user = await UserController.getUserbyId(userId);
+
+
+        // Check payment method in db
 
         const newUser = {
             name: user.name,
@@ -112,21 +114,39 @@ router.post('/save-card', async (req, res, next) => {
             result = await PaymentMethodController.insertPaymentMethod({ userId: userId, defaultCard: paymentId.id, customerId: customer.id })
 
         } else {
+            //Check duplicate card in stripe 
+            const card = await stripe.tokens.retrieve(token);
+            const last4 = card.card.last4;
+
+            const paymentMethods = await stripe.customers.listSources(availablePaymentMethod.customerId, { object: 'card' });
+
+            const isDuplicate = paymentMethods.data.some(card => card.last4 === last4);
+            if (isDuplicate) {
+                console.log(isDuplicate);
+                return res.status(400).json({ error: 'Card already exists.' });
+            }
+
             // create the card and attach to customer
 
             const paymentId = await stripe.customers.createSource(
-                availablePaymentMethod.userId,
+                availablePaymentMethod.customerId,
                 {
                     source: token
                 })
             if (paymentId)
                 result = true
-                console.log(paymentId + 'this is payment.Id');
-                
+
             // save default in db (Optional)
             if (isDefault) {
-                availablePaymentMethod.defaultCard = paymentId.id
-                result = await PaymentMethodController.updatePaymentMethod(availablePaymentMethod)
+                const updatedCustomer = await stripe.customers.update(availablePaymentMethod.customerId, {
+                    default_source: paymentId.id
+                });
+
+                if (updatedCustomer) {
+                    const newPaymentMethod = { ...availablePaymentMethod._doc, defaultCard: paymentId.id }
+
+                    result = await PaymentMethodController.updatePaymentMethod(newPaymentMethod)
+                }
             }
 
         }
@@ -142,8 +162,8 @@ router.post('/save-card', async (req, res, next) => {
 router.post('/choose-default-card', async (req, res, next) => {
     try {
 
-        const { userId, paymentMethodId } = req.params;
-
+        const { userId, paymentMethodId } = req.query;
+        let result = null
         const availablePaymentMethod = await PaymentMethodController.getDefaultPaymentMethod(userId)
         if (availablePaymentMethod) {
             const updatedCustomer = await stripe.customers.update(availablePaymentMethod.customerId, {
@@ -152,8 +172,9 @@ router.post('/choose-default-card', async (req, res, next) => {
             if (!updatedCustomer)
                 throw new CustomError("Choose default cards error !!!!")
             // Gán default card vào db
-            availablePaymentMethod.defaultCard = paymentMethodId
-            await PaymentMethodController.updatePaymentMethod(availablePaymentMethod);
+            const newPaymentMethod = { ...availablePaymentMethod._doc, defaultCard: paymentMethodId }
+            result = await PaymentMethodController.updatePaymentMethod(newPaymentMethod);
+            console.log(result, newPaymentMethod);
         } else
             return res.status(200).json({ result: false, message: "ERROR WHILE CHOOSE DEFAULT CARD SUCCESSFUL !!!", statusCode: 200 })
 
@@ -163,24 +184,25 @@ router.post('/choose-default-card', async (req, res, next) => {
         return res.status(500).json({ message: error, statusCode: 500 })
     }
 })
-router.post('/get-card-list', async (req, res, next) => {
+router.get('/get-card-list/:userId', async (req, res, next) => {
     try {
 
         const { userId } = req.params;
         let data = null
 
         const availablePaymentMethod = await PaymentMethodController.getDefaultPaymentMethod(userId)
+        const customerId = availablePaymentMethod.customerId;
+
+
         if (availablePaymentMethod) {
-            const customerId = availablePaymentMethod.customerId;
+
             const cards = await stripe.customers.listSources(customerId, {
                 object: 'card', // 
             });
             data = cards
         } else
-            return res.status(200).json({ result: false, data: data, message: "ERROR WHILE GET CARD'S LIST !!!", statusCode: 200 })
-
-
-        return res.status(200).json({ result: true, data: data, message: "GET CARD'S LIST SUCCESSFUL !!!", statusCode: 200 })
+            return res.status(400).json({ result: false, data: null, message: "ERROR WHILE GET CARD'S LIST !!!", statusCode: 400 })
+        return res.status(200).json({ result: true, data: data.data, message: "GET CARD'S LIST SUCCESSFUL !!!", statusCode: 200 })
     } catch (error) {
         console.log("ERROR GET CARD'S LIST: ", error);
         return res.status(500).json({ message: error, statusCode: 500 })
@@ -189,23 +211,33 @@ router.post('/get-card-list', async (req, res, next) => {
 router.post('/delete-card', async (req, res, next) => {
     try {
 
-        const { userId, paymentMethodId } = req.params;
+        const { userId, paymentMethodId } = req.query;
         const availablePaymentMethod = await PaymentMethodController.getDefaultPaymentMethod(userId)
+        let newPaymentMethod = null
         if (availablePaymentMethod) {
             const customerId = availablePaymentMethod.customerId;
             const cards = await stripe.customers.deleteSource(customerId, paymentMethodId);
             if (!cards.deleted)
                 throw new CustomError("ERROR WHILE DELETE CARDS !!!!")
-            if (availablePaymentMethod.defaultCard == paymentMethodId) {
-                availablePaymentMethod.defaultCard = ""
-                await PaymentMethodController.updatePaymentMethod(availablePaymentMethod)
+            const customer = await stripe.customers.retrieve(customerId);
+
+            // Lấy ID của thẻ mặc định
+            const defaultCardId = customer.default_source;
+
+            if (defaultCardId) {
+                // Truy xuất thông tin chi tiết về thẻ mặc định
+                newPaymentMethod = { ...availablePaymentMethod._doc, defaultCard: defaultCardId }
+            } else {
+                newPaymentMethod = { ...availablePaymentMethod._doc, defaultCard: "" }
             }
+            const result = await PaymentMethodController.updatePaymentMethod(newPaymentMethod)
+            console.log(result);
+            return res.status(200).json({ result: true, data: result, message: "DELETE THE CARD SUCCESSFUL !!!", statusCode: 200 })
 
         } else
-            return res.status(200).json({ result: false, data: data, message: "ERROR WHILE DELETE THE CARD !!!", statusCode: 200 })
+            return res.status(400).json({ result: false, message: "ERROR WHILE DELETE THE CARD !!!", statusCode: 400 })
 
 
-        return res.status(200).json({ result: true, data: data, message: "DELETE THE CARD SUCCESSFUL !!!", statusCode: 200 })
 
     } catch (error) {
         console.log("DELETE THE CARD: ", error);
