@@ -20,7 +20,8 @@ router.post('/intent', async (req, res, next) => {
         const convertedData = DivideVariationsFromCarts(data)
         const priceData = await productController.findPriceInProducts(convertedData);
         const amount = calculatePrice(priceData, data.products)
-        const {customerId, paymentMethodId} = data
+        const {userId} = data
+        const {customerId, paymentMethodId} = await PaymentMethodController.getDefaultPaymentMethod(userId)
         let order  ={
             currency: 'usd',
             amount: Math.round(amount) * 100,
@@ -34,7 +35,7 @@ router.post('/intent', async (req, res, next) => {
             order ={...order,customer:customerId}
         if(paymentMethodId)
             order ={...order,payment_method:paymentMethodId}
-        
+
         if (amount < 0)
             throw new CustomError("Error when calculate!!!")
         const result = await stripe.paymentIntents.create()
