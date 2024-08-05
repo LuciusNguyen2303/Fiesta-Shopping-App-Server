@@ -454,6 +454,18 @@ const findPriceInProducts = async (data) => {
         console.log('searchProducts Error(Service): ' + error)
     }
 }
-module.exports = { checkProductVariationStock, findPriceInProducts, updateQuantityAndSoldInQuery, deleteProduct, addProduct, deleteAttributesInProduct, getProductsByPageByCategories, getAllProduct, getProductsByPage, updateProduct, getProductByID, searchProducts }
+const getProductListByStandard = async (type) => {
+    try {
+        let item = null;
+        if (!type == "createAt" || !type == "rating" || !type == "sold")
+            throw new CustomError("Missing stock or rating or sold fields!!!")
+        item = { [type]: -1 }
+        const result = await productModel.find().sort(item).limit(15)
+        return result ? result : null;
+    } catch (error) {
+        console.log('searchProducts Error(Service): ' + error)
+    }
+}
+module.exports = {getProductListByStandard, checkProductVariationStock, findPriceInProducts, updateQuantityAndSoldInQuery, deleteProduct, addProduct, deleteAttributesInProduct, getProductsByPageByCategories, getAllProduct, getProductsByPage, updateProduct, getProductByID, searchProducts }
 
 

@@ -62,40 +62,39 @@ router.get('/getProductList', async (req, res, next) => {
         return res.status(500).json({ result: false, message: 'getAllProduct Error(Api): ' + error })
     }
 })
-router.get('/getProductListByTrend', async (req, res, next) => {
+// router.get('/getProductListByTrend', async (req, res, next) => {
+//     try {
+//         let { body } = req;
+//         const { name, price, quantity } = body;
+//         const products = await productController.getAllProduct(name, price, quantity);
+//         return products ?
+//             res.status(200).json({ result: true, message: 'getAllProduct succesfully', data: products }) :
+//             res.status(400).json({ result: false, message: 'getAllProduct failed' })
+//     } catch (error) {
+//         return res.status(500).json({ result: false, message: 'getAllProduct Error(Api): ' + error })
+//     }
+// })
+// router.get('/getProductListByBestSelling', async (req, res, next) => {
+//     try {
+//         let { body } = req;
+//         const { name, price, quantity } = body;
+//         const products = await productController.getAllProduct(name, price, quantity);
+//         return products ?
+//             res.status(200).json({ result: true, message: 'getAllProduct succesfully', data: products }) :
+//             res.status(400).json({ result: false, message: 'getAllProduct failed' })
+//     } catch (error) {
+//         return res.status(500).json({ result: false, message: 'getAllProduct Error(Api): ' + error })
+//     }
+// })
+router.get('/getProductListByStandard', async (req, res, next) => {
     try {
-        let { body } = req;
-        const { name, price, quantity } = body;
-        const products = await productController.getAllProduct(name, price, quantity);
+        let { type } = req.query;
+        const products = await productController.getProductListByStandard(type);
         return products ?
-            res.status(200).json({ result: true, message: 'getAllProduct succesfully', data: products }) :
-            res.status(400).json({ result: false, message: 'getAllProduct failed' })
+            res.status(200).json({ result: true, message: 'getProductListByStandard succesfully', data: products }) :
+            res.status(400).json({ result: false, message: 'getProductListByStandard failed' })
     } catch (error) {
-        return res.status(500).json({ result: false, message: 'getAllProduct Error(Api): ' + error })
-    }
-})
-router.get('/getProductListByBestSelling', async (req, res, next) => {
-    try {
-        let { body } = req;
-        const { name, price, quantity } = body;
-        const products = await productController.getAllProduct(name, price, quantity);
-        return products ?
-            res.status(200).json({ result: true, message: 'getAllProduct succesfully', data: products }) :
-            res.status(400).json({ result: false, message: 'getAllProduct failed' })
-    } catch (error) {
-        return res.status(500).json({ result: false, message: 'getAllProduct Error(Api): ' + error })
-    }
-})
-router.get('/getProductListByBestRating', async (req, res, next) => {
-    try {
-        let { body } = req;
-        const { name, price, quantity } = body;
-        const products = await productController.getAllProduct(name, price, quantity);
-        return products ?
-            res.status(200).json({ result: true, message: 'getAllProduct succesfully', data: products }) :
-            res.status(400).json({ result: false, message: 'getAllProduct failed' })
-    } catch (error) {
-        return res.status(500).json({ result: false, message: 'getAllProduct Error(Api): ' + error })
+        return res.status(500).json({ result: false, message: 'getProductListByStandard Error(Api): ' + error })
     }
 })
 router.get('/getProductListHome', async (req, res, next) => {

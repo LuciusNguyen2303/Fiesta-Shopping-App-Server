@@ -20,6 +20,7 @@ router.post('/intent', async (req, res, next) => {
         const convertedData = DivideVariationsFromCarts(data)
         const priceData = await productController.findPriceInProducts(convertedData);
         const amount = calculatePrice(priceData, data.products)
+        const {userId,paymentMethodId} = data
         if (amount < 0)
             throw new CustomError("Error when calculate!!!")
         const result = await stripe.paymentIntents.create({
@@ -27,7 +28,9 @@ router.post('/intent', async (req, res, next) => {
             amount: Math.round(amount) * 100,
             automatic_payment_methods: {
                 enabled: true
-            }
+            },
+           
+            payment_method: paymentMethodId,
         })
         console.log(result);
         return res.status(200).json({ data: result.client_secret, userId: data.userId, message: "SUCCESSFUL", statusCode: 200 })
