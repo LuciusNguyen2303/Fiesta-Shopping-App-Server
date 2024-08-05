@@ -47,6 +47,7 @@ const findPriceInProducts = async (data) => {
         console.log('getAllProduct error(Controller): ' + err);
     }
 }
+
 const getProductsByPage = async (page) => {
     try {
         console.log(skip(LIMIT, page));
@@ -126,5 +127,15 @@ const checkProductVariationStock = async (checkFields) => {
         return false;
     }
 }
-
-module.exports = { findPriceInProducts, deleteProduct, addProduct, deleteAttributesInProduct, getProductsByPage, getAllProduct, updateProduct, getProductByID, searchProducts, checkProductVariationStock }
+const getProductListByStandard = async (type) => {
+    try {
+        if (typeof type !=="string")
+         throw new CustomError("type must be a string !!!")   
+     
+        return await productService.getProductListByStandard(type)
+    } catch (error) {
+        console.log('getProductListByStandard error(Controller): ' + err);
+        return null;
+    }
+}
+module.exports = { getProductListByStandard,findPriceInProducts, deleteProduct, addProduct, deleteAttributesInProduct, getProductsByPage, getAllProduct, updateProduct, getProductByID, searchProducts, checkProductVariationStock }
