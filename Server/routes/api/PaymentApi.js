@@ -218,6 +218,22 @@ router.get('/get-card-list/:userId', async (req, res, next) => {
         return res.status(500).json({ message: error, statusCode: 500 })
     }
 })
+
+router.get('/get-default-card/:userId', async (req, res, next) => {
+    try {
+
+        const { userId } = req.params;
+
+        const availablePaymentMethod = await PaymentMethodController.getDefaultPaymentMethod(userId)
+
+        return availablePaymentMethod ? res.status(200).json({ result: true, data: availablePaymentMethod, message: "GET DEFAULT CARD SUCCESSFUL !!!", statusCode: 200 })
+            : res.status(400).json({ result: false, data: null, message: "ERROR WHILE GET DEFAULT CARD  !!!", statusCode: 400 })
+
+    } catch (error) {
+        console.log("ERROR GET CARD'S LIST: ", error);
+        return res.status(500).json({ message: error, statusCode: 500 })
+    }
+})
 router.post('/delete-card', async (req, res, next) => {
     try {
 
