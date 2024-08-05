@@ -20,21 +20,21 @@ router.post('/intent', async (req, res, next) => {
         const convertedData = DivideVariationsFromCarts(data)
         const priceData = await productController.findPriceInProducts(convertedData);
         const amount = calculatePrice(priceData, data.products)
-        const {userId} = data
-        const {customerId, paymentMethodId} = await PaymentMethodController.getDefaultPaymentMethod(userId)
-        let order  ={
+        const { userId } = data
+        const { customerId, defaultCard } = await PaymentMethodController.getDefaultPaymentMethod(userId)
+        let order = {
             currency: 'usd',
             amount: Math.round(amount) * 100,
             automatic_payment_methods: {
                 enabled: true
             },
-           
-           
+
+
         }
-        if(customerId)
-            order ={...order,customer:customerId}
-        if(paymentMethodId)
-            order ={...order,payment_method:paymentMethodId}
+        if (customerId)
+            order = { ...order, customer: customerId }
+        if (paymentMethodId)
+            order = { ...order, payment_method: defaultCard }
 
         if (amount < 0)
             throw new CustomError("Error when calculate!!!")
