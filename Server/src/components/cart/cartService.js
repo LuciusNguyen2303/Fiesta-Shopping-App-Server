@@ -99,12 +99,19 @@ const getCartsByPage = async (userId, page) => {
                 },
             },
         ]).limit(LIMIT).skip(page);
-
+        let newData =null
+        console.log(result);
+        
+        if(result) 
+            newData=result.map((item,index)=>{
+        const stockItemVariation = item.products.variations[0].stock
+                    return{...item,isStockSufficient:item.quantity<=stockItemVariation}
+            })
         // const result = await cartModel.find({ userId: userId }).limit(LIMIT).skip(page);
         if (page == 0)
             totalDocument = await cartModel.find({ userId: userId }).countDocuments();
         console.log(">>>>>",totalDocument);
-        return { result: result, pages: page == 0 && totalDocument > 0 ? totalPages(totalDocument, LIMIT) : null }
+        return { result: newData?newData:result, pages: page == 0 && totalDocument > 0 ? totalPages(totalDocument, LIMIT) : null }
     } catch (error) {
         console.log('getAllProduct Error(Service): ' + error);
     }

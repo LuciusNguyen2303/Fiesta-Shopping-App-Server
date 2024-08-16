@@ -1,7 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const productController = require('../../src/components/product/ProductController')
-const {uploadFile} = require("../../src/middleware/UploadFile")
+const {uploadFile} = require("../../src/middleware/UploadFile");
+const { totalPages } = require('../../src/components/public method');
+const { countDocuments } = require('../../src/components/category/categoryModel');
 
 // http://localhost:3000/api/productApi/addProduct
 // Thêm sản phẩm
@@ -138,7 +140,7 @@ router.get('/getProductByID', async (req, res, next) => {
         return res.status(500).json({ result: false, message: 'getProductByID Error(Api): ' + error })
     }
 })
-router.get('/getProductByIDda', async (req, res, next) => {
+router.get('/getProductByID', async (req, res, next) => {
     try {
         let { productID } = req.query
         const product = await productController.getProductByID(productID);
@@ -175,14 +177,15 @@ router.post('/deleteProduct', async (req, res, next) => {
 })
 // Tìm kiếm sản phẩm theo điều kiện
 router.get('/searchProducts', async (req, res, next) => {
-    try {
+    // try {
         const products = await productController.searchProducts(req);
+        console.log(JSON.stringify(req.query));
         return products != null ?
-            res.status(200).json({ result: true, message: 'searchProducts succesfully', data: products.products, documents: products.countDocument }) :
+            res.status(200).json({ result: true, message: 'searchProducts succesfully', data: products.products, documents: products.countDocument,totalPage:req.query.limit?totalPages(products.countDocument,req.query.limit):null }) :
             res.status(200).json({ result: true, message: 'not product found', data: products })
-    } catch (error) {
-        return res.status(500).json({ result: false, message: 'searchProducts Error(Api): ' + error })
-    }
+    // } catch (error) {
+    //     return res.status(500).json({ result: false, message: 'searchProducts Error(Api): ' + error })
+    // }
 })
 router.get('/checkVaritationProductStock', async (req, res, next) => {
     try {
@@ -192,6 +195,31 @@ router.get('/checkVaritationProductStock', async (req, res, next) => {
         return res.status(200).json({ result: false, data: stock })
     } catch (error) {
         console.log('checkProductVariationStock error (Api): ' + error);
+    }
+})
+router.get('/getStockProduct', async (req, res, next) => {
+    try {
+        const {productId,variationId} = req.query;
+        const stock = await productController.getStockProduct(productId,variationId)
+        if(stock)
+        return res.status(200).json({ result: true, data: stock })
+        return res.status(200).json({ result: false, data: stock })
+    } catch (error) {
+        console.log('checkProductVariationStock error (Api): ' + error);
+    }
+})
+router.post('/getStockManyProducts', async (req, res, next) => {
+    try {
+        const {items} = req.body;
+        
+        const stock = await productController.getStockManyProduct(items)
+        console.log(JSON.stringify(items),JSON.stringify(stock));
+
+        if(stock)
+        return res.status(200).json({ result: true, data: stock })
+        return res.status(200).json({ result: false, data: stock })
+    } catch (error) {
+        console.log('getStockManyProducts error (Api): ' + error);
     }
 })
 module.exports = router;

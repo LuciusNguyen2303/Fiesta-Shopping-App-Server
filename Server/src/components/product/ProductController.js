@@ -138,4 +138,26 @@ const getProductListByStandard = async (type) => {
         return null;
     }
 }
-module.exports = { getProductListByStandard,findPriceInProducts, deleteProduct, addProduct, deleteAttributesInProduct, getProductsByPage, getAllProduct, updateProduct, getProductByID, searchProducts, checkProductVariationStock }
+const getStockProduct = async (productId,variationId) => {
+    try {
+        if (typeof productId !=="string" )
+         throw new CustomError("type must be a string !!!")   
+     
+        return await productService.getStockProduct(productId,variationId)
+    } catch (error) {
+        console.log('getProductListByStandard error(Controller): ' + err);
+        return null;
+    }
+}
+const getStockManyProduct = async (items) => {
+    try {
+        if (typeof items =="undefined" &&!Array.isArray(items) )
+         throw new CustomError("type must be a items !!!")   
+     
+        return await productService.getStockManyProducts(items)
+    } catch (error) {
+        console.log('getProductListByStandard error(Controller): ' + error);
+        return null;
+    }
+}
+module.exports = {getStockManyProduct, getStockProduct,getProductListByStandard,findPriceInProducts, deleteProduct, addProduct, deleteAttributesInProduct, getProductsByPage, getAllProduct, updateProduct, getProductByID, searchProducts, checkProductVariationStock }
