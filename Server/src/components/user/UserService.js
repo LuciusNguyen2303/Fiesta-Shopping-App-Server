@@ -242,6 +242,8 @@ const addNewAddress = async (userId, addFields) => {
             {
                 $push: {
                     address: {
+                        name: addFields.name ? addFields.name : "",
+                        phoneNumber: addFields.phoneNumber ? addFields.phoneNumber : "",
                         city: addFields.city ? addFields.city : "",
                         district: addFields.district ? addFields.district : "",
                         ward: addFields.ward ? addFields.ward : "",
@@ -267,6 +269,8 @@ const updateAddress = async (userId, updateFields, addressId) => {
         const result = await userModel.findByIdAndUpdate(userId,
             {
                 $set: {
+                    ...(updateFields.name ? { 'address.$[elem].name': updateFields.name } : {}),
+                    ...(updateFields.phoneNumber ? { 'address.$[elem].phoneNumber': updateFields.phoneNumber } : {}),
                     ...(updateFields.city ? { 'address.$[elem].city': updateFields.city } : {}),
                     ...(updateFields.district ? { 'address.$[elem].district': updateFields.district } : {}),
                     ...(updateFields.ward ? { 'address.$[elem].ward': updateFields.ward } : {}),
@@ -298,17 +302,18 @@ const deleteAddress = async (userId, addressId) => {
             {
                 new: true
             })
-            if(result)
-                return result
+        if (result)
+            return result
     } catch (error) {
         console.log("delete address error(Service): " + error);
-        
+
     }
 }
 module.exports = {
-    getUserbyId, UnlockUser, 
-    changePassword, updateUserInfo, 
-    getRoleById, checkRefreshToken, 
-    UndoUser, DeleteUser, LockUser, 
-    Authorized, GrantedPermissions, 
-    addUser, signIn, addNewAddress, updateAddress, deleteAddress }
+    getUserbyId, UnlockUser,
+    changePassword, updateUserInfo,
+    getRoleById, checkRefreshToken,
+    UndoUser, DeleteUser, LockUser,
+    Authorized, GrantedPermissions,
+    addUser, signIn, addNewAddress, updateAddress, deleteAddress
+}
