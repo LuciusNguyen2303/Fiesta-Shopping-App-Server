@@ -135,7 +135,7 @@ const addNewAddress = async (userId, addFields) => {
     try {
         if (!userId)
             throw new CustomError("Not found userId!!!")
-        if (!addFields || !addFields.city || !addFields.district || !addFields.ward || !addFields.street)
+        if (!addFields || !addFields.city || !addFields.district || !addFields.ward || !addFields.street || !addFields.name || !addFields.phoneNumber)
             throw new CustomError("Not valid addFields!!!")
         return await userService.addNewAddress(userId, addFields)
     } catch (error) {
