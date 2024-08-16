@@ -1,7 +1,7 @@
 const express = require('express')
 const router = express.Router();
 const cartController = require("../../src/components/cart/cartController");
-const { DivideVariationsFromCarts,calculatePrice,validateCarts } = require('./PaymentMethod/CalculatePriceFromServer');
+const { DivideVariationsFromCarts, calculatePrice, validateCarts } = require('./PaymentMethod/CalculatePriceFromServer');
 const productController = require('../../src/components/product/ProductController');
 const CustomError = require('../../src/HandleError');
 // http://localhost:3000/api/cart/
@@ -12,7 +12,7 @@ router.post("/add", async (req, res, next) => {
         const request = await cartController.addCarts(addFields)
 
         return request ?
-            res.status(200).json({ result: true, statusCode: 200, message: 'add succesfully',data:request }) :
+            res.status(200).json({ result: true, statusCode: 200, message: 'add succesfully', data: request }) :
             res.status(400).json({ result: false, statusCode: 400, message: 'add failed' })
     } catch (error) {
         return res.status(500).json({ result: false, statusCode: 500, message: 'add Error(Api): ' + error })
@@ -22,8 +22,8 @@ router.post("/add", async (req, res, next) => {
 router.post("/update", async (req, res, nex) => {
     try {
         const { updateFields } = req.body;
-        const { cartID} = req.query;
-        const request = await cartController.updateCart(cartID,updateFields)
+        const { cartID } = req.query;
+        const request = await cartController.updateCart(cartID, updateFields)
         console.log(request);
         return request ?
             res.status(200).json({ result: true, statusCode: 200, message: 'update succesfully' }) :
@@ -73,8 +73,8 @@ router.post('/total', async (req, res, next) => {
 
         if (amount < 0)
             throw new CustomError("Error when calculate!!!")
-      console.log(amount);
-        return res.status(200).json({ userId: data.userId, message: "SUCCESSFUL",total:amount, statusCode: 200 })
+        console.log(amount);
+        return res.status(200).json({ userId: data.userId, message: "SUCCESSFUL", total: amount, statusCode: 200 })
     } catch (error) {
         console.log("PAYMENT METHODS API: ", error);
         return res.status(500).json({ message: error, statusCode: 500 })
@@ -86,11 +86,23 @@ router.get("/getByPage/:page/:userId", async (req, res, nex) => {
         console.log(page, userId);
         const request = await cartController.getCartsByPage(userId, page)
         return request ?
-            res.status(200).json({ result: true, statusCode: 200, message: 'getByPage succesfully',data:request }) :
+            res.status(200).json({ result: true, statusCode: 200, message: 'getByPage succesfully', data: request }) :
             res.status(400).json({ result: false, statusCode: 400, message: 'getByPage failed' })
     } catch (error) {
         return res.status(500).json({ result: false, statusCode: 500, message: 'getByPage Error(Api): ' + error })
 
+    }
+})
+router.get("/getCartByIds", async (req, res, next) => {
+    try {
+        const { getFields, userId } = req.query;
+        
+        const result = await cartController.getCartByIds(getFields, userId)
+        return result ?
+            res.status(200).json({ result: true, statusCode: 200, message: 'get cart by ids succesfully', data: result.result, documents: result.documents}) :
+            res.status(400).json({ result: false, statusCode: 400, message: 'get cart by ids failed' })
+    } catch (error) {
+        return res.status(500).json({ result: false, statusCode: 500, message: 'get cart by ids Error(Api): ' + error })
     }
 })
 module.exports = router
