@@ -12,7 +12,6 @@ const { CustomerUpdateFields } = require('../../src/components/public method');
 router.post('/intent', async (req, res, next) => {
     try {
         const data = req.body;
-        console.log(data);
         // check if not valid data ?
         if (!validateCarts(data))
             throw new CustomError("Error with cart's data.")
@@ -22,6 +21,7 @@ router.post('/intent', async (req, res, next) => {
         const amount = calculatePrice(priceData, data.products)
         const { userId } = data
         const { customerId, defaultCard } = await PaymentMethodController.getDefaultPaymentMethod(userId)
+        
         let order = {
             currency: 'usd',
             amount: Math.round(amount) * 100,
@@ -33,12 +33,13 @@ router.post('/intent', async (req, res, next) => {
         }
         if (customerId)
             order = { ...order, customer: customerId }
-        if (paymentMethodId)
+        if (defaultCard)
             order = { ...order, payment_method: defaultCard }
-
+        console.log(order);
+        
         if (amount < 0)
             throw new CustomError("Error when calculate!!!")
-        const result = await stripe.paymentIntents.create()
+        const result = await stripe.paymentIntents.create(order)
         console.log(result);
         return res.status(200).json({ data: result.client_secret, userId: data.userId, message: "SUCCESSFUL", statusCode: 200 })
     } catch (error) {
@@ -188,7 +189,7 @@ router.post('/choose-default-card', async (req, res, next) => {
         } else
             return res.status(200).json({ result: false, message: "ERROR WHILE CHOOSE DEFAULT CARD SUCCESSFUL !!!", statusCode: 200 })
 
-        return res.status(200).json({ result: true, message: "CHOOSE DEFAULT CARD SUCCESSFUL !!!", statusCode: 200 })
+        return res.status(200).json({ result: true, message: "CHOOSE DEFAULT CARD SUCCESSFUL !!!", statusCode: 200, cardId: paymentMethodId })
     } catch (error) {
         console.log("ERROR CHOOSE DEFAULT CARD SUCCESSFUL: ", error);
         return res.status(500).json({ message: error, statusCode: 500 })

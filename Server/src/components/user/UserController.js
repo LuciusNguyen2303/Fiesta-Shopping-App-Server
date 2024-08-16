@@ -107,8 +107,8 @@ const updateUserInfo = async (id, updateFields) => {
             throw new CustomError("No id to update the user's info!!!!")
         if (!updateFields)
             throw new CustomError("No updateFields to update the user's info!!!!")
-        
-        return await userService.updateUserInfo(id, cleanObject(updateFields,CustomerUpdateFields));
+
+        return await userService.updateUserInfo(id, cleanObject(updateFields, CustomerUpdateFields));
 
 
     } catch (error) {
@@ -124,11 +124,56 @@ const changePassword = async (userName, currentPassword, newPassword) => {
             throw new CustomError("No currentPassword to change the user's password!!!!")
         if (!newPassword)
             throw new CustomError("No newPassword to change the user's password!!!!")
-     
+
         return await userService.changePassword(userName, currentPassword, newPassword);
     } catch (error) {
         console.log("Error at change password (CONTROLLER): " + error);
         return false;
     }
 }
-module.exports = { getUserbyId,UnlockUser,changePassword,updateUserInfo, getRoleById, checkRefreshToken, UndoUser, DeleteUser, LockUser, Authorized, GrantedPermissions, addUser, signIn }
+const addNewAddress = async (userId, addFields) => {
+    try {
+        if (!userId)
+            throw new CustomError("Not found userId!!!")
+        if (!addFields || !addFields.city || !addFields.district || !addFields.ward || !addFields.street || !addFields.name || !addFields.phoneNumber)
+            throw new CustomError("Not valid addFields!!!")
+        return await userService.addNewAddress(userId, addFields)
+    } catch (error) {
+        console.log("Error at add new address (Controller): " + error);
+        return false;
+    }
+}
+const updateAddress = async (userId, updateFields, addressId) => {
+    try {
+        if (!userId)
+            throw new CustomError("Not found userId!!!")
+        if (!updateFields)
+            throw new CustomError("Not valid updateFields!!!")
+        if (!addressId)
+            throw new CustomError("Not found updateFields!!!")
+        return await userService.updateAddress(userId, updateFields, addressId)
+    } catch (error) {
+        console.log("Error at update address (Controller): " + error);
+        return false;
+    }
+}
+const deleteAddress = async (userId, addressId) => {
+    try {
+        if (!userId)
+            throw new CustomError("Not found userId!!!")
+        if (!addressId)
+            throw new CustomError("Not found addressId!!!")
+        return await userService.deleteAddress(userId, addressId)
+    } catch (error) {
+        console.log("Error at delete address (Controller): " + error);
+        return false;
+    }
+}
+module.exports = {
+    getUserbyId, UnlockUser,
+    changePassword, updateUserInfo,
+    getRoleById, checkRefreshToken,
+    UndoUser, DeleteUser, LockUser, 
+    Authorized, GrantedPermissions,
+     addUser, signIn, addNewAddress, updateAddress, deleteAddress
+}
