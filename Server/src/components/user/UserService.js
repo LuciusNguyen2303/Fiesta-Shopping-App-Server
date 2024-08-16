@@ -1,5 +1,6 @@
 const userModel = require('./UserModel')
 const bcrypt = require('bcrypt')
+const mongoose = require('mongoose')
 const jwt = require('jsonwebtoken')
 
 const CustomError = require('../../HandleError')
@@ -13,7 +14,7 @@ const addUser = async (name, userName, password) => {
         console.log(checkUser);
         if (!checkUser) {
             const hashedPassword = await bcrypt.hash(password, 10)
-            const newUser = { name: name, userName: userName, password: hashedPassword}
+            const newUser = { name: name, userName: userName, password: hashedPassword }
             console.log('addUser data: ' + JSON.stringify(newUser))
             const newU = new userModel(newUser)
             return await newU.save()
@@ -133,9 +134,9 @@ const signIn = async (userName, password) => {
 const GrantedPermissions = async (id) => {
     try {
         const check = await userModel.findOne({ _id: id }).select("role")
-        if(!check)
+        if (!check)
             throw new CustomError("No available document!!!")
-        if(check.role!=="Customer")
+        if (check.role !== "Customer")
             throw new CustomError("This user must be the Customer!!!")
 
         const result = await userModel.updateOne({ _id: id }, { role: "GrantedPermissions" })
@@ -148,9 +149,9 @@ const GrantedPermissions = async (id) => {
 const Authorized = async (id) => {
     try {
         const check = await userModel.findOne({ _id: id }).select("role")
-        if(!check)
+        if (!check)
             throw new CustomError("No available document!!!")
-        if(check.role !=="GrantedPermissions")
+        if (check.role !== "GrantedPermissions")
             throw new CustomError("This user must Granted Permissions first!!!")
         console.log(JSON.stringify(check));
         const result = await userModel.updateOne({ _id: id, role: "GrantedPermissions" }, { role: "Staff" })
@@ -205,9 +206,9 @@ const UnlockUser = async (id) => {
 }
 const updateUserInfo = async (id, updateFields) => {
     try {
-        
-        console.log(" updateUserInfo (service): " +JSON.stringify(updateFields));
-        const result = await userModel.findByIdAndUpdate(id, updateFields,{new:true});
+
+        console.log(" updateUserInfo (service): " + JSON.stringify(updateFields));
+        const result = await userModel.findByIdAndUpdate(id, updateFields, { new: true });
         return result
 
     } catch (error) {
@@ -223,9 +224,9 @@ const changePassword = async (userName, currentPassword, newPassword) => {
             const isPasswordValid = await bcrypt.compare(currentPassword, isAvailableUser.password)
             if (!isPasswordValid) {
                 throw new Error('Password is incorrect!')
-            }else if(isPasswordValid){
+            } else if (isPasswordValid) {
                 const hashedPassword = await bcrypt.hash(newPassword, 10)
-                isAvailableUser.password=hashedPassword
+                isAvailableUser.password = hashedPassword
                 return await isAvailableUser.save()
             }
         }
@@ -235,4 +236,79 @@ const changePassword = async (userName, currentPassword, newPassword) => {
         return false;
     }
 }
-module.exports = {getUserbyId,UnlockUser, changePassword,updateUserInfo, getRoleById, checkRefreshToken, UndoUser, DeleteUser, LockUser, Authorized, GrantedPermissions, addUser, signIn }
+const addNewAddress = async (userId, addFields) => {
+    try {
+        const result = await userModel.findByIdAndUpdate(userId,
+            {
+                $push: {
+                    address: {
+                        city: addFields.city ? addFields.city : "",
+                        district: addFields.district ? addFields.district : "",
+                        ward: addFields.ward ? addFields.ward : "",
+                        street: addFields.street ? addFields.street : "",
+                        houseNumber: addFields.houseNumber ? addFields.houseNumber : ""
+                    }
+                },
+            },
+            {
+                new: true
+            }
+        )
+        if (result)
+            return result
+        return null
+    } catch (error) {
+        console.log('add new address error(Service): ' + error);
+
+    }
+}
+const updateAddress = async (userId, updateFields, addressId) => {
+    try {
+        const result = await userModel.findByIdAndUpdate(userId,
+            {
+                $set: {
+                    ...(updateFields.city ? { 'address.$[elem].city': updateFields.city } : {}),
+                    ...(updateFields.district ? { 'address.$[elem].district': updateFields.district } : {}),
+                    ...(updateFields.ward ? { 'address.$[elem].ward': updateFields.ward } : {}),
+                    ...(updateFields.street ? { 'address.$[elem].street': updateFields.street } : {}),
+                    ...(updateFields.houseNumber ? { 'address.$[elem].houseNumber': updateFields.houseNumber } : {})
+                }
+            },
+            {
+                new: true,
+                arrayFilters: [{ 'elem._id': addressId }]
+            }
+        )
+        if (result)
+            return result
+        return null
+    } catch (error) {
+        console.log('update address error(Service): ' + error);
+
+    }
+}
+const deleteAddress = async (userId, addressId) => {
+    try {
+        const result = await userModel.findByIdAndUpdate(userId,
+            {
+                $pull: {
+                    address: { _id: addressId }
+                }
+            },
+            {
+                new: true
+            })
+            if(result)
+                return result
+    } catch (error) {
+        console.log("delete address error(Service): " + error);
+        
+    }
+}
+module.exports = {
+    getUserbyId, UnlockUser, 
+    changePassword, updateUserInfo, 
+    getRoleById, checkRefreshToken, 
+    UndoUser, DeleteUser, LockUser, 
+    Authorized, GrantedPermissions, 
+    addUser, signIn, addNewAddress, updateAddress, deleteAddress }
