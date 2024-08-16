@@ -1,10 +1,19 @@
 const mongoose = require('mongoose')
 const Schema = mongoose.Schema
+const addressSchema = new Schema({
+    name: {type: String},
+    phoneNumber: {type: String},
+    city: {type: String, default: ""},
+    district: {type: String, default: ""},
+    ward: {type: String, default: ""},
+    street: {type: String, default: ""},
+    houseNumber: {type: String, default: ""}
+})
 const userSchema = new Schema({
     name: { type: String },
     gender: { type: String,default:'Male' },
     phoneNumber: { type: String, default: "" },
-    address: { type: String, default: "" },
+    address: { type: [addressSchema], default: [] },
     userName: { type: String, unique: true },
     password: { type: String },
     image: {
