@@ -1,5 +1,7 @@
 function totalPages(totalData, limit) {
     let totalPages = 0
+    console.log(limit,totalData);
+    limit = Number(limit)
     if (totalData % limit == 0) {
         return totalPages = totalData / limit
     }
