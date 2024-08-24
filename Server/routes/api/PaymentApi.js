@@ -19,29 +19,42 @@ router.post('/intent', async (req, res, next) => {
         const convertedData = DivideVariationsFromCarts(data)
         const priceData = await productController.findPriceInProducts(convertedData);
         const amount = calculatePrice(priceData, data.products)
-        const { userId } = data
-        const { customerId, defaultCard } = await PaymentMethodController.getDefaultPaymentMethod(userId)
-        
+        const { userId,paymentMethod } = data
+        const defaultPayment = await PaymentMethodController.getDefaultPaymentMethod(userId)
+        if (!defaultPayment)
+            return res.status(200).json({ statusCode: 1000, message: "No available default payment doc" })
+
+        const { customerId, defaultCard } = defaultPayment
+        if (!defaultCard)
+            return res.status(200).json({ statusCode: 1001, message: "No empty default card id." })
+
         let order = {
             currency: 'usd',
             amount: Math.round(amount) * 100,
             automatic_payment_methods: {
-                enabled: true
+                enabled: true,
+                allow_redirects: 'never' 
             },
-
-
-        }
+          
+        };
+        
+        
         if (customerId)
             order = { ...order, customer: customerId }
-        if (defaultCard)
+        if (defaultCard&&paymentMethod=="Visa")
             order = { ...order, payment_method: defaultCard }
-        console.log(order);
-        
+
         if (amount < 0)
             throw new CustomError("Error when calculate!!!")
         const result = await stripe.paymentIntents.create(order)
         console.log(result);
-        return res.status(200).json({ data: result.client_secret, userId: data.userId, message: "SUCCESSFUL", statusCode: 200 })
+        const ephemeralKey = await stripe.ephemeralKeys.create(
+            { customer: customerId },
+            { apiVersion: '2024-04-10' } // Thay thế bằng phiên bản API của bạn
+          );
+          console.log(ephemeralKey);
+          
+        return res.status(200).json({customerId:customerId,ephemeralKey:ephemeralKey.secret, data: result.client_secret,paymentIntentId:result.id,amount:amount, userId: data.userId, message: "SUCCESSFUL", statusCode: 200 })
     } catch (error) {
         console.log("PAYMENT METHODS API: ", error);
         return res.status(500).json({ message: error, statusCode: 500 })
@@ -86,7 +99,7 @@ router.post('/cancelPaymentIntents/:paymentId/:userId', async (req, res, next) =
             res.status(400).json({ message: "No refund processed", statusCode: 400 });
 
     } catch (error) {
-        console.log("PAYMENT METHODS API: ", error);
+        // console.log("PAYMENT METHODS API: ", error);
         return res.status(500).json({ message: "Internal server error", error: error.message, statusCode: 500 });
     }
 });
@@ -202,7 +215,7 @@ router.get('/get-card-list/:userId', async (req, res, next) => {
         let data = null
 
         const availablePaymentMethod = await PaymentMethodController.getDefaultPaymentMethod(userId)
-        const customerId = availablePaymentMethod.customerId;
+        const { customerId, defaultCard } = availablePaymentMethod;
 
 
         if (availablePaymentMethod) {
@@ -213,7 +226,7 @@ router.get('/get-card-list/:userId', async (req, res, next) => {
             data = cards
         } else
             return res.status(400).json({ result: false, data: null, message: "ERROR WHILE GET CARD'S LIST !!!", statusCode: 400 })
-        return res.status(200).json({ result: true, data: data.data, message: "GET CARD'S LIST SUCCESSFUL !!!", statusCode: 200 })
+        return res.status(200).json({ result: true, data: data.data, message: "GET CARD'S LIST SUCCESSFUL !!!", statusCode: 200, defaultCard: defaultCard })
     } catch (error) {
         console.log("ERROR GET CARD'S LIST: ", error);
         return res.status(500).json({ message: error, statusCode: 500 })
@@ -226,8 +239,19 @@ router.get('/get-default-card/:userId', async (req, res, next) => {
         const { userId } = req.params;
 
         const availablePaymentMethod = await PaymentMethodController.getDefaultPaymentMethod(userId)
+        if (!availablePaymentMethod)
+            return res.status(200).json({ statusCode: 1000, message: "No available default payment doc" })
+        const { customerId, defaultCard } = availablePaymentMethod
 
-        return availablePaymentMethod ? res.status(200).json({ result: true, data: availablePaymentMethod, message: "GET DEFAULT CARD SUCCESSFUL !!!", statusCode: 200 })
+
+        if (!defaultCard || !customerId)
+            return res.status(200).json({ statusCode: 1001, message: "No empty default card id." })
+        const card = await stripe.customers.retrieveSource(
+            customerId,
+            defaultCard 
+          );
+         
+        return card ? res.status(200).json({ result: true, data: card.last4, message: "GET DEFAULT CARD SUCCESSFUL !!!", statusCode: 200 })
             : res.status(400).json({ result: false, data: null, message: "ERROR WHILE GET DEFAULT CARD  !!!", statusCode: 400 })
 
     } catch (error) {

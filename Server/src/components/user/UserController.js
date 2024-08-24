@@ -133,9 +133,11 @@ const changePassword = async (userName, currentPassword, newPassword) => {
 }
 const addNewAddress = async (userId, addFields) => {
     try {
+        console.log(addFields);
+
         if (!userId)
             throw new CustomError("Not found userId!!!")
-        if (!addFields || !addFields.city || !addFields.district || !addFields.ward || !addFields.street || !addFields.name || !addFields.phoneNumber)
+        if (!addFields || !addFields.city  || !addFields.ward || !addFields.street || !addFields.name || !addFields.phoneNumber)
             throw new CustomError("Not valid addFields!!!")
         return await userService.addNewAddress(userId, addFields)
     } catch (error) {
@@ -169,11 +171,23 @@ const deleteAddress = async (userId, addressId) => {
         return false;
     }
 }
+const setDefaultAddress = async (userId, addressId) => {
+    try {
+        if (!userId)
+            throw new CustomError("Not found userId!!!")
+        if (!addressId)
+            throw new CustomError("Not found addressId!!!")
+        return await userService.setDefaultAddress(userId, addressId)
+    } catch (error) {
+        console.log("Error at delete address (Controller): " + error);
+        return false;
+    }
+}
 module.exports = {
     getUserbyId, UnlockUser,
     changePassword, updateUserInfo,
     getRoleById, checkRefreshToken,
     UndoUser, DeleteUser, LockUser, 
-    Authorized, GrantedPermissions,
+    Authorized, GrantedPermissions,setDefaultAddress,
      addUser, signIn, addNewAddress, updateAddress, deleteAddress
 }

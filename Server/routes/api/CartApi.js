@@ -88,7 +88,7 @@ router.get("/getByPage/:page/:userId", async (req, res, nex) => {
         return request ?
             res.status(200).json({ result: true, statusCode: 200, message: 'getByPage succesfully',data:request }) :
             res.status(400).json({result: false, statusCode: 400, message: 'getByPage failed' })
-d8439d705a36400126a1e437773cc9398b67752
+
     } catch (error) {
         return res.status(500).json({ result: false, statusCode: 500, message: 'getByPage Error(Api): ' + error })
 
