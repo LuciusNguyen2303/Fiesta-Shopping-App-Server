@@ -2,9 +2,9 @@ const mongoose = require('mongoose')
 const Schema = mongoose.Schema;
 const ObjectId = mongoose.Types.ObjectId;
 const productinOrder = Schema({
-    price: { type: Number, required: true },
+    // price: { type: Number, required: true },
     quantity: { type: Number, required: true },
-    productId: { type: ObjectId, required: true },
+    productId: { type: ObjectId, required: true,ref:'products' },
     variationId: { type: ObjectId },
 })
 const ordersSchema = new Schema({
@@ -13,7 +13,7 @@ const ordersSchema = new Schema({
     shipping: { type: Object, required: true },
     modifiedOn: { type: Date, default: Date.now() },
     isHidden:{type:Boolean, default:false},
-    status: { type: String, enum: ['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled', 'Returned'], default: 'Pending' },
+    status: { type: String, enum: ['Pending', 'Processing', 'Shipping', 'Delivered', 'Cancelled', 'Returned'], default: 'Pending' },
     products: [productinOrder]
 })
 

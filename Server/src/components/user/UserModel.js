@@ -3,11 +3,13 @@ const Schema = mongoose.Schema
 const addressSchema = new Schema({
     name: {type: String},
     phoneNumber: {type: String},
+    country:{type: String, default: ""},
     city: {type: String, default: ""},
     district: {type: String, default: ""},
     ward: {type: String, default: ""},
     street: {type: String, default: ""},
-    houseNumber: {type: String, default: ""}
+    houseNumber: {type: String, default: ""},
+    isDefault:{type:Boolean,default:false}
 })
 const userSchema = new Schema({
     name: { type: String },

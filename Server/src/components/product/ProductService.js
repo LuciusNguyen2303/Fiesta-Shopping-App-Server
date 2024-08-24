@@ -305,7 +305,7 @@ function generateDeleteQueryVariations(updateFields) {
 
 }
 
-function generateUpdateQuantityQuery(item) {
+function generateMinusQuantityQuery(item) {
     let queryUpdate = {};
     let arrayFilter = [];
 
@@ -338,7 +338,39 @@ function generateUpdateQuantityQuery(item) {
 
     return { query: queryUpdate, filter: arrayFilter };
 }
+function generateReturnQuantityQuery(item) {
+    let queryUpdate = {};
+    let arrayFilter = [];
 
+    try {
+        let variationsKeys = Object.keys(item._doc || item);
+        if (variationsKeys.length > 3) {
+            // let keyArr = `e`;
+            if (variationsKeys.includes("quantity")) {
+                let key = `stock`;
+
+                if (item["variationId"] !== null) {
+                    key = "variations.$[e].stock";
+                    _id = item.variationId;
+                    arrayFilter.push({ "e._id": _id });
+                }
+                queryUpdate = {
+                    $inc: {
+                        [key]: +item["quantity"],
+                        sold: item["quantity"]
+                    }
+                };
+            }
+        }
+
+    } catch (error) {
+        console.log("ERROR generateQueryVariations: " + error);
+    }
+
+    console.log(JSON.stringify(queryUpdate), JSON.stringify(arrayFilter));
+
+    return { query: queryUpdate, filter: arrayFilter };
+}
 const deleteAttributesInProduct = async (productID, updateFields) => {
     try {
         const checkNecessaryAttribute = await productModel.findOne({
@@ -358,14 +390,14 @@ const deleteAttributesInProduct = async (productID, updateFields) => {
     }
 }
 
-const updateQuantityAndSoldInQuery = async (updateFields) => {
+const updateMinusQuantityAndSoldInQuery = async (updateFields) => {
     try {
         let productUpdated = false;
 
         let bulkOps = null;
         if (updateFields.length > 0) {
             bulkOps = updateFields.map((item, index) => {
-                const query = generateUpdateQuantityQuery(item);
+                const query = generateMinusQuantityQuery(item);
                 return {
                     updateOne: {
                         filter: { _id: item.productId },
@@ -386,7 +418,34 @@ const updateQuantityAndSoldInQuery = async (updateFields) => {
         return false;
     }
 };
+const updatePlusQuantityAndSoldInQuery = async (updateFields) => {
+    try {
+        let productUpdated = false;
 
+        let bulkOps = null;
+        if (updateFields.length > 0) {
+            bulkOps = updateFields.map((item, index) => {
+                const query = generateReturnQuantityQuery(item);
+                return {
+                    updateOne: {
+                        filter: { _id: item.productId },
+                        update: query.query,
+                        upsert: true,
+                        arrayFilters: query.filter
+                    }
+                };
+            });
+        }
+
+        console.log(JSON.stringify(bulkOps));
+
+        productUpdated = await productModel.bulkWrite(bulkOps);
+        return !productUpdated ? console.log('Product not found') : productUpdated;
+    } catch (error) {
+        console.log('updateProduct Error(Service): ' + error);
+        return false;
+    }
+};
 const deleteProduct = async (productIDs) => {
     try {
         const result = productModel.updateMany(
@@ -556,6 +615,6 @@ const getProductListByStandard = async (type) => {
         console.log('searchProducts Error(Service): ' + error)
     }
 }
-module.exports = {getStockManyProducts,getStockProduct,getProductListByStandard, checkProductVariationStock, findPriceInProducts, updateQuantityAndSoldInQuery, deleteProduct, addProduct, deleteAttributesInProduct, getProductsByPageByCategories, getAllProduct, getProductsByPage, updateProduct, getProductByID, searchProducts }
+module.exports = {getStockManyProducts,getStockProduct,getProductListByStandard, checkProductVariationStock, findPriceInProducts, updateMinusQuantityAndSoldInQuery,updatePlusQuantityAndSoldInQuery, deleteProduct, addProduct, deleteAttributesInProduct, getProductsByPageByCategories, getAllProduct, getProductsByPage, updateProduct, getProductByID, searchProducts }
 
 
