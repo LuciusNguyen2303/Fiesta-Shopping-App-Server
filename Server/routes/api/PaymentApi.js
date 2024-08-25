@@ -19,7 +19,7 @@ router.post('/intent', async (req, res, next) => {
         const convertedData = DivideVariationsFromCarts(data)
         const priceData = await productController.findPriceInProducts(convertedData);
         const amount = calculatePrice(priceData, data.products)
-        const { userId,paymentMethod } = data
+        const { userId, paymentMethod } = data
         const defaultPayment = await PaymentMethodController.getDefaultPaymentMethod(userId)
         if (!defaultPayment)
             return res.status(200).json({ statusCode: 1000, message: "No available default payment doc" })
@@ -33,28 +33,34 @@ router.post('/intent', async (req, res, next) => {
             amount: Math.round(amount) * 100,
             automatic_payment_methods: {
                 enabled: true,
-                allow_redirects: 'never' 
+                allow_redirects: 'never'
             },
-          
+            // thuộc tính này lấy thẳng defaultCard của order để thanh toán luôn không cần chọn
+            // hợp với cái của ô 
+            
+            
+            //Nhưng mà ông thêm điều kiện để nó thêm confirm:true nha
+            //confirm:true 
         };
-        
-        
+
+
         if (customerId)
             order = { ...order, customer: customerId }
-        if (defaultCard&&paymentMethod=="Visa")
+        if (defaultCard && paymentMethod == "Visa")
             order = { ...order, payment_method: defaultCard }
-
+        
         if (amount < 0)
             throw new CustomError("Error when calculate!!!")
         const result = await stripe.paymentIntents.create(order)
         console.log(result);
+
         const ephemeralKey = await stripe.ephemeralKeys.create(
             { customer: customerId },
             { apiVersion: '2024-04-10' } // Thay thế bằng phiên bản API của bạn
-          );
-          console.log(ephemeralKey);
-          
-        return res.status(200).json({customerId:customerId,ephemeralKey:ephemeralKey.secret, data: result.client_secret,paymentIntentId:result.id,amount:amount, userId: data.userId, message: "SUCCESSFUL", statusCode: 200 })
+        );
+        console.log(ephemeralKey);
+
+        return res.status(200).json({ customerId: customerId, ephemeralKey: ephemeralKey.secret, data: result.client_secret, paymentIntentId: result.id, amount: amount, userId: data.userId, message: "SUCCESSFUL", statusCode: 200 })
     } catch (error) {
         console.log("PAYMENT METHODS API: ", error);
         return res.status(500).json({ message: error, statusCode: 500 })
@@ -248,9 +254,9 @@ router.get('/get-default-card/:userId', async (req, res, next) => {
             return res.status(200).json({ statusCode: 1001, message: "No empty default card id." })
         const card = await stripe.customers.retrieveSource(
             customerId,
-            defaultCard 
-          );
-         
+            defaultCard
+        );
+
         return card ? res.status(200).json({ result: true, data: card.last4, message: "GET DEFAULT CARD SUCCESSFUL !!!", statusCode: 200 })
             : res.status(400).json({ result: false, data: null, message: "ERROR WHILE GET DEFAULT CARD  !!!", statusCode: 400 })
 
