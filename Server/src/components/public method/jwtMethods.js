@@ -6,8 +6,8 @@
 const jwt = require('jsonwebtoken')
 require('dotenv').config()
 
-const expireAccessTokenTime='1m'
-const expireRefreshTokenTime='2m'
+const expireAccessTokenTime='3m'
+const expireRefreshTokenTime='30d'
 
 
 const createAccessToken = (user) => {

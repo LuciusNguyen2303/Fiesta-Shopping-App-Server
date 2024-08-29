@@ -122,7 +122,7 @@ const signIn = async (userName, password) => {
         const result = await user.save();
 
         if (result) {
-            return accessToken
+            return {user:user,accessToken:accessToken}
         }
         throw new CustomError("Error when saves the refreshToken!!! ", 500)
     } catch (error) {
