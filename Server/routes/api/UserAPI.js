@@ -53,17 +53,9 @@ router.get("/getUserInfo/:id", async (req, res, next) => {
         return res.status(500).json({ error: error, statusCode: 500 })
     }
 })
-router.post('/testAuthen', [uploadFile], async (req, res, next) => {
+router.post('/testAuthen', [authenticateToken], async (req, res, next) => {
     try {
-        // Lấy dữ liệu JSON từ body
-        // const jsonData = JSON.parse(req.body.data);
-        // console.time("Time host");
-        // const addingData = await hostUpdateImageToCDN(jsonData, req, "Products")
-        // console.timeEnd("Time host");
-        let regex = new RegExp("https:\/\/ik\.imagekit\.io\/");
-
-        // Log dữ liệu JSON đã cập nhật với đường dẫn tệp tin
-        console.log('Dữ liệu JSON sau khi cập nhật:', regex.test("https://ik.imagekit.io/m8rm3w365/1717650803771_KxkkwhduB.jpg"));
+       
 
         return res.status(200).json({ result: true, message: "Token is valid" })
 
@@ -170,6 +162,7 @@ router.post('/UnlockUser', async (req, res, next) => {
 router.post('/addNewAddress', async (req, res, next) => {
     try {
         const { userId, addFields } = req.body;
+        
         const response = await userController.addNewAddress(userId, addFields)
         return response ?
             res.status(200).json({ result: true, message: 'add new address successfully', data: response, statusCode: 200 }) :
@@ -195,6 +188,17 @@ router.post('/deleteAddress', async (req, res, next) => {
         const response = await userController.deleteAddress(userId, addressId)
         return response ?
             res.status(200).json({ result: true, message: 'delete address successfully', data: response, satusCode: 200 }) :
+            res.status(400).json({ result: false, message: 'delete address failed' })
+    } catch (error) {
+        res.status(500).json({ result: false, message: 'delete address error(Api): ' + error })
+    }
+})
+router.post('/setDefaultAddress', async (req, res, next) => {
+    try {
+        const { userId, addressId } = req.body;
+        const response = await userController.setDefaultAddress(userId, addressId)
+        return response ?
+            res.status(200).json({ result: true, message: 'delete address successfully', data: response }) :
             res.status(400).json({ result: false, message: 'delete address failed' })
     } catch (error) {
         res.status(500).json({ result: false, message: 'delete address error(Api): ' + error })

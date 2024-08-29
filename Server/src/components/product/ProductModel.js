@@ -67,6 +67,8 @@ const productSchema = new Schema({
     createAt: {type: Date, default: Date.now}
 });
 productSchema.index({
+    _id: 1,
+    'variations._id': 1,
     'variations.price': 1,
     'variations.dimension': 1,
     'variations.stock': 1,

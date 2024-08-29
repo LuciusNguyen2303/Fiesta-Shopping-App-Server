@@ -86,8 +86,9 @@ router.get("/getByPage/:page/:userId", async (req, res, nex) => {
         console.log(page, userId);
         const request = await cartController.getCartsByPage(userId, page)
         return request ?
-            res.status(200).json({ result: true, statusCode: 200, message: 'getByPage succesfully', data: request }) :
-            res.status(400).json({ result: false, statusCode: 400, message: 'getByPage failed' })
+            res.status(200).json({ result: true, statusCode: 200, message: 'getByPage succesfully',data:request }) :
+            res.status(400).json({result: false, statusCode: 400, message: 'getByPage failed' })
+
     } catch (error) {
         return res.status(500).json({ result: false, statusCode: 500, message: 'getByPage Error(Api): ' + error })
 
