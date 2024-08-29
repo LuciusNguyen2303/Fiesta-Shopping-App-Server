@@ -29,10 +29,10 @@ router.post('/login', async (req, res, next) => {
         const { userName, password } = req.body;
         const response = await userController.signIn(userName, password);
         return response ?
-            res.status(200).json({ result: true, message: 'Login successfully', token: response }) :
-            res.status(400).json({ result: false, message: 'Login failed' })
+            res.status(200).json({ result: true, message: 'Login successfully', data: response, statusCode: 200 }) :
+            res.status(400).json({ result: false, message: 'Login failed', statusCode: 400 })
     } catch (error) {
-        return res.status(500).json({ result: false, message: 'addUser Error(Api): ' + error })
+        return res.status(500).json({ result: false, message: 'addUser Error(Api): ' + error, statusCode: 500 })
     }
 })
 
@@ -172,8 +172,8 @@ router.post('/addNewAddress', async (req, res, next) => {
         const { userId, addFields } = req.body;
         const response = await userController.addNewAddress(userId, addFields)
         return response ?
-            res.status(200).json({ result: true, message: 'add new address successfully', data: response }) :
-            res.status(400).json({ result: false, message: 'add new address failed' })
+            res.status(200).json({ result: true, message: 'add new address successfully', data: response, statusCode: 200 }) :
+            res.status(400).json({ result: false, message: 'add new address failed', statusCode: 400 })
     } catch (error) {
         res.status(500).json({ result: false, message: 'add new address error(Api): ' + error })
     }
@@ -183,8 +183,8 @@ router.post('/updateAddress', async (req, res, next) => {
         const { userId, updateFields, addressId } = req.body;
         const response = await userController.updateAddress(userId, updateFields, addressId)
         return response ?
-            res.status(200).json({ result: true, message: 'update address successfully', data: response }) :
-            res.status(400).json({ result: false, message: 'update address failed' })
+            res.status(200).json({ result: true, message: 'update address successfully', data: response, statusCode: 200 }) :
+            res.status(400).json({ result: false, message: 'update address failed', statusCode: 400 })
     } catch (error) {
         res.status(500).json({ result: false, message: 'update address error(Api): ' + error })
     }
@@ -194,7 +194,7 @@ router.post('/deleteAddress', async (req, res, next) => {
         const { userId, addressId } = req.body;
         const response = await userController.deleteAddress(userId, addressId)
         return response ?
-            res.status(200).json({ result: true, message: 'delete address successfully', data: response }) :
+            res.status(200).json({ result: true, message: 'delete address successfully', data: response, satusCode: 200 }) :
             res.status(400).json({ result: false, message: 'delete address failed' })
     } catch (error) {
         res.status(500).json({ result: false, message: 'delete address error(Api): ' + error })

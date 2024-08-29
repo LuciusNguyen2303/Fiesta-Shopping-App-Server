@@ -107,6 +107,7 @@ const checkRefreshToken = async (userField) => {
 const signIn = async (userName, password) => {
     try {
         const user = await userModel.findOne({ userName: userName })
+
         if (user) {
             const isPasswordValid = await bcrypt.compare(password, user.password)
             if (!isPasswordValid) {
@@ -122,7 +123,13 @@ const signIn = async (userName, password) => {
         const result = await user.save();
 
         if (result) {
-            return accessToken
+            return {
+                token: {
+                    accessToken,
+                    refreshToken
+                },
+                user
+            }
         }
         throw new CustomError("Error when saves the refreshToken!!! ", 500)
     } catch (error) {
@@ -275,7 +282,7 @@ const updateAddress = async (userId, updateFields, addressId) => {
                     ...(updateFields.district ? { 'address.$[elem].district': updateFields.district } : {}),
                     ...(updateFields.ward ? { 'address.$[elem].ward': updateFields.ward } : {}),
                     ...(updateFields.street ? { 'address.$[elem].street': updateFields.street } : {}),
-                    ...(updateFields.houseNumber ? { 'address.$[elem].houseNumber': updateFields.houseNumber } : {})
+                    ...(updateFields.houseNumber ? { 'a ddress.$[elem].houseNumber': updateFields.houseNumber } : {})
                 }
             },
             {
