@@ -28,8 +28,10 @@ router.post('/login', async (req, res, next) => {
     try {
         const { userName, password } = req.body;
         const response = await userController.signIn(userName, password);
+        
+        const {user,accessToken}=response
         return response ?
-            res.status(200).json({ result: true, message: 'Login successfully', token: response }) :
+            res.status(200).json({ result: true, message: 'Login successfully', token: accessToken,user:user }) :
             res.status(400).json({ result: false, message: 'Login failed' })
     } catch (error) {
         return res.status(500).json({ result: false, message: 'addUser Error(Api): ' + error })
@@ -53,27 +55,29 @@ router.get("/getUserInfo/:id", async (req, res, next) => {
         return res.status(500).json({ error: error, statusCode: 500 })
     }
 })
-router.post('/testAuthen', [authenticateToken], async (req, res, next) => {
+router.get('/user', [authenticateToken], async (req, res, next) => {
     try {
-       
-
-        return res.status(200).json({ result: true, message: "Token is valid" })
-
+        const { userId } = req
+        console.log(userId);
+        
+        const user = await userController.getUserbyId(userId)
+        return user ? res.status(200).json({ result: true, data: user, message: "Token is valid" })
+            : res.status(400).json({ result: false, data: null, message: "Token is not valid" })
     } catch (error) {
         console.log('addUser Error(Api): ' + error);
         return res.status(500).json({ result: false, message: 'addUser Error(Api): ' + error })
     }
 })
 
-router.post('/updateUser/:id', [uploadFile], async (req, res, next) => {
+router.post('/updateUser/:id', [authenticateToken,uploadFile], async (req, res, next) => {
     try {
         const { id } = req.params
         const { updateFields } = req.body;
         const updatedData = await hostUpdateImageToCDN(JSON.parse(updateFields), req, "Users")
         // console.log(">>>updatedData",JSON.stringify(updatedData))
         const result = await userController.updateUserInfo(id, updatedData)
-
-        return result ? res.status(200).json({ result: true, data: result }) :
+        const {password,isLock,isHidden,role,refreshToken,...data} =result._doc
+        return result ? res.status(200).json({ result: true, data: data }) :
             res.status(400).json({ result: false, data: result })
 
 
@@ -162,7 +166,7 @@ router.post('/UnlockUser', async (req, res, next) => {
 router.post('/addNewAddress', async (req, res, next) => {
     try {
         const { userId, addFields } = req.body;
-        
+
         const response = await userController.addNewAddress(userId, addFields)
         return response ?
             res.status(200).json({ result: true, message: 'add new address successfully', data: response }) :

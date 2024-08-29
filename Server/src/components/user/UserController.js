@@ -179,7 +179,7 @@ const setDefaultAddress = async (userId, addressId) => {
             throw new CustomError("Not found addressId!!!")
         return await userService.setDefaultAddress(userId, addressId)
     } catch (error) {
-        console.log("Error at delete address (Controller): " + error);
+        console.log("Error at set default address (Controller): " + error);
         return false;
     }
 }
