@@ -255,7 +255,10 @@ const addNewAddress = async (userId, addFields) => {
                         district: addFields.district ? addFields.district : "",
                         ward: addFields.ward ? addFields.ward : "",
                         street: addFields.street ? addFields.street : "",
-                        houseNumber: addFields.houseNumber ? addFields.houseNumber : ""
+                        houseNumber: addFields.houseNumber ? addFields.houseNumber : "",
+                        isDefault: addFields.isDefault ? addFields.isDefault : false,
+                        country: addFields.country ? addFields.country : "",
+
                     }
                 },
             },
@@ -282,7 +285,8 @@ const updateAddress = async (userId, updateFields, addressId) => {
                     ...(updateFields.district ? { 'address.$[elem].district': updateFields.district } : {}),
                     ...(updateFields.ward ? { 'address.$[elem].ward': updateFields.ward } : {}),
                     ...(updateFields.street ? { 'address.$[elem].street': updateFields.street } : {}),
-                    ...(updateFields.houseNumber ? { 'a ddress.$[elem].houseNumber': updateFields.houseNumber } : {})
+                    ...(updateFields.houseNumber ? { 'a ddress.$[elem].houseNumber': updateFields.houseNumber } : {}),
+                    ...(updateFields.country ? { 'address.$[elem].country': updateFields.country } : {}),
                 }
             },
             {
@@ -295,6 +299,35 @@ const updateAddress = async (userId, updateFields, addressId) => {
         return null
     } catch (error) {
         console.log('update address error(Service): ' + error);
+
+    }
+}
+const setDefaultAddress = async (userId, addressId) => {
+    try {
+        const result = await userModel.updateOne(
+            {"address.isDefault":true}, 
+            { $set: { "address.$.isDefault": false } }
+        )
+        const isSet= await userModel.updateOne(
+            { _id: userId },
+                {
+                    $set: {
+                        "address.$[elem].isDefault": true
+                    }
+                },
+                {
+                    new: true,
+                    arrayFilters: [{ "elem._id":addressId }]
+                }
+        );
+        // const isSet = await userModel.updateOne(
+        //    
+
+
+        if(isSet)
+            return isSet
+    } catch (error) {
+        console.log('set default address error(Service): ' + error);
 
     }
 }
@@ -317,6 +350,7 @@ const deleteAddress = async (userId, addressId) => {
     }
 }
 module.exports = {
+    setDefaultAddress,
     getUserbyId, UnlockUser,
     changePassword, updateUserInfo,
     getRoleById, checkRefreshToken,

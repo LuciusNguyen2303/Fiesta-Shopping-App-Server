@@ -7,6 +7,97 @@ const productModel = require('./ProductModel')
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 const ObjectId = mongoose.Types.ObjectId
+const getStockProduct = async(productId,variationId)=>{
+    try {
+        console.log(productId,variationId);
+        const result = await productModel.aggregate([
+            {
+                $match: {
+                    _id: new ObjectId(productId) 
+                }
+            },
+            {
+                $unwind: "$variations"
+            },
+            {
+                $match: {
+                    "variations._id": new ObjectId(variationId)
+                }
+            },
+            {
+                $project: {
+                    productId: "$_id",
+                    variationId: "$variations._id",
+                    stock: "$variations.stock"
+                }
+            }
+        ])    
+        return result 
+    } catch (error) {
+        console.log("Get stock product error: ",error );
+    }
+}
+const getStockManyProducts = async (items) => {
+    try {
+        // Tạo điều kiện lọc cho tất cả sản phẩm và biến thể
+        const matchConditions = items.map(item => ({
+            $and: [
+                { _id: new ObjectId(item.productId) },
+                { "variations._id": new ObjectId(item.variationId) }
+            ]
+        }));
+
+        // Chạy truy vấn để lấy kết quả cho tất cả sản phẩm và biến thể
+        const result = await productModel.aggregate([
+            {
+                $match: {
+                    $or: matchConditions
+                }
+            },
+            {
+                $unwind: "$variations"
+            },
+            {
+                $match: {
+                    $or: items.map(item => ({
+                        "variations._id": new ObjectId(item.variationId)
+                    }))
+                }
+            },
+            {
+                $project: {
+                    productId: "$_id",
+                    variationId: "$variations._id",
+                    stock: "$variations.stock"
+                }
+            }
+        ]);
+
+        // Kiểm tra tồn kho cho từng sản phẩm và biến thể
+        const stockCheckResult = items.map(item => {
+            const foundItem = result.find(r => r.productId.equals(new ObjectId(item.productId)) && r.variationId.equals(new ObjectId(item.variationId)));
+            const isStockSufficient = foundItem && foundItem.stock >= item.quantity;
+            return {
+                productId: item.productId,
+                variationId: item.variationId,
+                requiredQuantity: item.quantity,
+                stockAvailable: foundItem ? foundItem.stock : 0,
+                isStockSufficient:isStockSufficient?true:false
+            };
+        });
+
+        return stockCheckResult;
+    } catch (error) {
+        console.log("Get stock products error: ", error);
+        throw error;
+    }
+};
+
+// Example usage
+
+
+
+
 
 const addProduct = async (
     category, name, image, price, stock, brand, rating, Description, variations) => {
@@ -214,7 +305,7 @@ function generateDeleteQueryVariations(updateFields) {
 
 }
 
-function generateUpdateQuantityQuery(item) {
+function generateMinusQuantityQuery(item) {
     let queryUpdate = {};
     let arrayFilter = [];
 
@@ -247,7 +338,39 @@ function generateUpdateQuantityQuery(item) {
 
     return { query: queryUpdate, filter: arrayFilter };
 }
+function generateReturnQuantityQuery(item) {
+    let queryUpdate = {};
+    let arrayFilter = [];
 
+    try {
+        let variationsKeys = Object.keys(item._doc || item);
+        if (variationsKeys.length > 3) {
+            // let keyArr = `e`;
+            if (variationsKeys.includes("quantity")) {
+                let key = `stock`;
+
+                if (item["variationId"] !== null) {
+                    key = "variations.$[e].stock";
+                    _id = item.variationId;
+                    arrayFilter.push({ "e._id": _id });
+                }
+                queryUpdate = {
+                    $inc: {
+                        [key]: +item["quantity"],
+                        sold: item["quantity"]
+                    }
+                };
+            }
+        }
+
+    } catch (error) {
+        console.log("ERROR generateQueryVariations: " + error);
+    }
+
+    console.log(JSON.stringify(queryUpdate), JSON.stringify(arrayFilter));
+
+    return { query: queryUpdate, filter: arrayFilter };
+}
 const deleteAttributesInProduct = async (productID, updateFields) => {
     try {
         const checkNecessaryAttribute = await productModel.findOne({
@@ -267,14 +390,14 @@ const deleteAttributesInProduct = async (productID, updateFields) => {
     }
 }
 
-const updateQuantityAndSoldInQuery = async (updateFields) => {
+const updateMinusQuantityAndSoldInQuery = async (updateFields) => {
     try {
         let productUpdated = false;
 
         let bulkOps = null;
         if (updateFields.length > 0) {
             bulkOps = updateFields.map((item, index) => {
-                const query = generateUpdateQuantityQuery(item);
+                const query = generateMinusQuantityQuery(item);
                 return {
                     updateOne: {
                         filter: { _id: item.productId },
@@ -295,7 +418,34 @@ const updateQuantityAndSoldInQuery = async (updateFields) => {
         return false;
     }
 };
+const updatePlusQuantityAndSoldInQuery = async (updateFields) => {
+    try {
+        let productUpdated = false;
 
+        let bulkOps = null;
+        if (updateFields.length > 0) {
+            bulkOps = updateFields.map((item, index) => {
+                const query = generateReturnQuantityQuery(item);
+                return {
+                    updateOne: {
+                        filter: { _id: item.productId },
+                        update: query.query,
+                        upsert: true,
+                        arrayFilters: query.filter
+                    }
+                };
+            });
+        }
+
+        console.log(JSON.stringify(bulkOps));
+
+        productUpdated = await productModel.bulkWrite(bulkOps);
+        return !productUpdated ? console.log('Product not found') : productUpdated;
+    } catch (error) {
+        console.log('updateProduct Error(Service): ' + error);
+        return false;
+    }
+};
 const deleteProduct = async (productIDs) => {
     try {
         const result = productModel.updateMany(
@@ -362,7 +512,6 @@ const searchProducts = async (req) => {
 
             // Tạo điều kiện tìm kiếm
             const categoryConditions = [];
-
             if (mainCategories) {
                 categoryConditions.push({ 'category.mainCategory': mainCategories });
                 console.log('categoryConditions: ' + categoryConditions)
@@ -466,6 +615,6 @@ const getProductListByStandard = async (type) => {
         console.log('searchProducts Error(Service): ' + error)
     }
 }
-module.exports = {getProductListByStandard, checkProductVariationStock, findPriceInProducts, updateQuantityAndSoldInQuery, deleteProduct, addProduct, deleteAttributesInProduct, getProductsByPageByCategories, getAllProduct, getProductsByPage, updateProduct, getProductByID, searchProducts }
+module.exports = {getStockManyProducts,getStockProduct,getProductListByStandard, checkProductVariationStock, findPriceInProducts, updateMinusQuantityAndSoldInQuery,updatePlusQuantityAndSoldInQuery, deleteProduct, addProduct, deleteAttributesInProduct, getProductsByPageByCategories, getAllProduct, getProductsByPage, updateProduct, getProductByID, searchProducts }
 
 
