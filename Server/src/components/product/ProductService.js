@@ -324,7 +324,8 @@ function generateMinusQuantityQuery(item) {
                 queryUpdate = {
                     $inc: {
                         [key]: -item["quantity"],
-                        sold: item["quantity"]
+                        sold: +item["quantity"],
+                        stock:-item["quantity"],
                     }
                 };
             }
@@ -357,7 +358,8 @@ function generateReturnQuantityQuery(item) {
                 queryUpdate = {
                     $inc: {
                         [key]: +item["quantity"],
-                        sold: item["quantity"]
+                        stock:+item["quantity"],
+                        sold: -item["quantity"]
                     }
                 };
             }
@@ -514,9 +516,8 @@ const searchProducts = async (req) => {
             const categoryConditions = [];
             if (mainCategories) {
                 categoryConditions.push({ 'category.mainCategory': mainCategories });
-                console.log('categoryConditions: ' + categoryConditions)
 
-                if (subCategories.length > 0) {
+                if (subCategories.length > 0&&subCategories[0].length>0) {
                     categoryConditions.push({ 'category.subCategory': { $in: subCategories } });
                 }
             }
@@ -525,6 +526,7 @@ const searchProducts = async (req) => {
                 searchBody.$and = categoryConditions;
             }
         }
+        console.log('searchBody: ' + JSON.stringify(searchBody))
 
         const countDocument = await productModel.find(searchBody).countDocuments();
         const totalPages = Math.ceil(countDocument / limit);
