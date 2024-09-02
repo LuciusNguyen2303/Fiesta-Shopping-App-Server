@@ -221,8 +221,13 @@ router.get('/get-card-list/:userId', async (req, res, next) => {
         let data = null
 
         const availablePaymentMethod = await PaymentMethodController.getDefaultPaymentMethod(userId)
+        
+        if (!availablePaymentMethod)
+            return res.status(200).json({ statusCode: 1000, message: "No available default payment doc" })
         const { customerId, defaultCard } = availablePaymentMethod;
-
+        if (!defaultCard || !customerId)
+            return res.status(200).json({ statusCode: 1001, message: "No empty default card id." })
+       
 
         if (availablePaymentMethod) {
 
@@ -245,6 +250,7 @@ router.get('/get-default-card/:userId', async (req, res, next) => {
         const { userId } = req.params;
 
         const availablePaymentMethod = await PaymentMethodController.getDefaultPaymentMethod(userId)
+        
         if (!availablePaymentMethod)
             return res.status(200).json({ statusCode: 1000, message: "No available default payment doc" })
         const { customerId, defaultCard } = availablePaymentMethod

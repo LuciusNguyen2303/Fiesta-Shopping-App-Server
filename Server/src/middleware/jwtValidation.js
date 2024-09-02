@@ -7,38 +7,48 @@ const { messaging } = require('firebase-admin');
 require('dotenv').config()
 
 const authenticateToken = async (req, res, next) => {
-    const authorizationHeader = req.headers['authorization'];
-    if (authorizationHeader) {
-        if (authorizationHeader.startsWith('Bearer ')) {
-            console.log('Good to go');
+    try {
+
+
+        const authorizationHeader = req.headers['authorization'];
+        if (authorizationHeader) {
+            if (authorizationHeader.startsWith('Bearer ')) {
+                console.log('Good to go');
+            } else {
+                console.log('Bad to go');
+            }
         } else {
-            console.log('Bad to go');
+            console.log('Cant move to headers or headers not valid');
         }
-    } else {
-        console.log('Cant move to headers or headers not valid');
-    }
 
-    const token = authorizationHeader.split(' ')[1];
+        const token = authorizationHeader.split(' ')[1];
 
-    if (!token) {
-        console.log('Token is null');
-        return res.sendStatus(401)
-    } else {
-        console.log('token: ' + token);
-    }
-    const check = verifyAccessToken(token)
-
-    if (check.result && check.message == 0) {
-        next();
-    } else if (check.message == "TokenExpiredError") {
+        if (!token) {
+            console.log('Token is null');
+            return res.sendStatus(401)
+        } else {
+            console.log('token: ' + token);
+        }
+        const check = verifyAccessToken(token)
         const decoded = jwt.decode(token)
-        const result = await checkRefreshToken(decoded);
-        if (result) {
-            return res.status(401).json({ result: true,token:createAccessToken(decoded), message: "NEWACCESSTOKEN" });
+
+        if (check.result && check.message == 0) {
+            req.userId = decoded._id
+            next();
+        } else if (check.message == "TokenExpiredError") {
+            const decoded = jwt.decode(token)
+            const result = await checkRefreshToken(decoded);
+            if (result) {
+                return res.status(499).json({ result: true, token: createAccessToken(decoded), message: "NEWACCESSTOKEN" });
+            }
+            return res.status(499).json({ result: false, token: null, message: "Refresh token error: " + check.message });
+        } else {
+            return res.status(400).json({ result: false, token: null, message: check.message + "NOOOO" });
         }
-        return res.status(400).json({ result: false, token:null,message: "Refresh token error: "+check.message });
-    } else {
-        return res.status(400).json({ result: false,token:null, message: check.message+"NOOOO" });
+
+    } catch (error) {
+        return res.status(500).json({ result: false, token: null, message: check.message + "NOOOO" });
+
     }
 }
 // const authenticateTokenGG = async (req, res, next) => {
