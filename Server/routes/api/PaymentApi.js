@@ -19,7 +19,7 @@ router.post('/intent', async (req, res, next) => {
         const convertedData = DivideVariationsFromCarts(data)
         const priceData = await productController.findPriceInProducts(convertedData);
         const amount = calculatePrice(priceData, data.products)
-        const { userId, paymentMethod } = data
+        const { userId, products ,paymentMethod } = data
         const defaultPayment = await PaymentMethodController.getDefaultPaymentMethod(userId)
         if (!defaultPayment)
             return res.status(200).json({ statusCode: 1000, message: "No available default payment doc" })
@@ -46,7 +46,7 @@ router.post('/intent', async (req, res, next) => {
 
         if (customerId)
             order = { ...order, customer: customerId }
-        if (defaultCard && paymentMethod == "Visa")
+        if (defaultCard && paymentMethod == "Debit/Credit Card")
             order = { ...order, payment_method: defaultCard }
         
         if (amount < 0)
@@ -257,7 +257,7 @@ router.get('/get-default-card/:userId', async (req, res, next) => {
             defaultCard
         );
 
-        return card ? res.status(200).json({ result: true, data: card.last4, message: "GET DEFAULT CARD SUCCESSFUL !!!", statusCode: 200 })
+        return card ? res.status(200).json({ result: true, data: {last4: card.last4, defaultCard: defaultCard}, message: "GET DEFAULT CARD SUCCESSFUL !!!", statusCode: 200 })
             : res.status(400).json({ result: false, data: null, message: "ERROR WHILE GET DEFAULT CARD  !!!", statusCode: 400 })
 
     } catch (error) {
