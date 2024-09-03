@@ -3,14 +3,16 @@ const router = express.Router();
 const path = require('path')
 const userController = require('../../src/components/user/UserController')
 const { addUser_Validation } = require('../../src/middleware/userValidation');
-const { authenticateToken, authenticateTokenGG } = require('../../src/middleware/jwtValidation')
-const { AuthorizedForAdmin, AuthorizedForCustomer, AuthorizedForStaff } = require("../../src/middleware/Authorized");
 const { uploadFile } = require("../../src/middleware/UploadFile")
 const fs = require('fs');
 const { hostAddingImageToCDN, hostUpdateImageToCDN } = require('./ImageMethod/ImageMethod');
+
+const { authenticateToken } = require('../../src/middleware/jwtValidation');
+const { AuthorizedForAdmin, AuthorizedForStaff, AuthorizedForCustomer } = require('../../src/middleware/Authorized');
+
 // http://localhost:3000/api/userApi/addUser
 
-router.post('/addUser', [addUser_Validation], async (req, res, next) => {
+router.post('/addUser', [authenticateToken,AuthorizedForAdmin,AuthorizedForStaff,addUser_Validation], async (req, res, next) => {
     try {
         const { name, userName, password } = req.body;
         console.log(name, userName, password);
@@ -43,7 +45,7 @@ router.post('/login', async (req, res, next) => {
 
 
 */
-router.get("/getUserInfo/:id", async (req, res, next) => {
+router.get("/getUserInfo/:id",[authenticateToken,AuthorizedForAdmin,AuthorizedForStaff,AuthorizedForCustomer], async (req, res, next) => {
     try {
         const { id } = req.params;
         const data = await userController.getUserbyId(id)
@@ -65,7 +67,7 @@ router.post('/testAuthen', [authenticateToken], async (req, res, next) => {
     }
 })
 
-router.post('/updateUser/:id', [uploadFile], async (req, res, next) => {
+router.post('/updateUser/:id', [authenticateToken,AuthorizedForAdmin,AuthorizedForStaff,AuthorizedForCustomer,uploadFile], async (req, res, next) => {
     try {
         const { id } = req.params
         const { updateFields } = req.body;
@@ -81,7 +83,7 @@ router.post('/updateUser/:id', [uploadFile], async (req, res, next) => {
         return res.status(500).json({ result: false, message: 'updateUser Error(Api): ' + error })
     }
 })
-router.post('/changePassword', async (req, res, next) => {
+router.post('/changePassword',[authenticateToken,AuthorizedForAdmin,AuthorizedForStaff,AuthorizedForCustomer], async (req, res, next) => {
     try {
         const { username, currentPassword, newPassword } = req.body;
         const result = await userController.changePassword(username, currentPassword, newPassword)
@@ -93,7 +95,7 @@ router.post('/changePassword', async (req, res, next) => {
         return res.status(500).json({ result: false, message: 'changePassword Error(Api): ' + error })
     }
 })
-router.post('/GrantedPermissions', async (req, res, next) => {
+router.post('/GrantedPermissions',[authenticateToken,AuthorizedForAdmin], async (req, res, next) => {
     try {
         const { userId } = req.query;
         const response = await userController.GrantedPermissions(userId);
@@ -104,7 +106,7 @@ router.post('/GrantedPermissions', async (req, res, next) => {
         return res.status(500).json({ result: false, message: 'GrantedPermissions Error(Api): ' + error })
     }
 })
-router.post('/Authorized', async (req, res, next) => {
+router.post('/Authorized',[authenticateToken,AuthorizedForAdmin], async (req, res, next) => {
     try {
         const { userId } = req.query;
         const response = await userController.Authorized(userId);
@@ -115,7 +117,7 @@ router.post('/Authorized', async (req, res, next) => {
         return res.status(500).json({ result: false, message: 'addUser Error(Api): ' + error })
     }
 })
-router.post('/LockUser', async (req, res, next) => {
+router.post('/LockUser',[authenticateToken,AuthorizedForAdmin], async (req, res, next) => {
     try {
         const { userId } = req.query;
         const response = await userController.LockUser(userId)
@@ -126,7 +128,7 @@ router.post('/LockUser', async (req, res, next) => {
         return res.status(500).json({ result: false, message: 'LockUser Error(Api): ' + error })
     }
 })
-router.post('/DeleteUser', async (req, res, next) => {
+router.post('/DeleteUser',[authenticateToken,AuthorizedForAdmin], async (req, res, next) => {
     try {
         const { userId } = req.query;
         const response = await userController.DeleteUser(userId);
@@ -137,7 +139,7 @@ router.post('/DeleteUser', async (req, res, next) => {
         return res.status(500).json({ result: false, message: 'DeleteUser Error(Api): ' + error })
     }
 })
-router.post('/UndoUser', async (req, res, next) => {
+router.post('/UndoUser',[authenticateToken,AuthorizedForAdmin], async (req, res, next) => {
     try {
         const { userId } = req.query;
         const response = await userController.UndoUser(userId);
@@ -148,7 +150,7 @@ router.post('/UndoUser', async (req, res, next) => {
         return res.status(500).json({ result: false, message: 'UndoUser Error(Api): ' + error })
     }
 })
-router.post('/UnlockUser', async (req, res, next) => {
+router.post('/UnlockUser',[authenticateToken,AuthorizedForAdmin], async (req, res, next) => {
     try {
         const { userId } = req.query;
         const response = await userController.UnlockUser(userId);
@@ -159,7 +161,7 @@ router.post('/UnlockUser', async (req, res, next) => {
         return res.status(500).json({ result: false, message: 'UnlockUser Error(Api): ' + error })
     }
 })
-router.post('/addNewAddress', async (req, res, next) => {
+router.post('/addNewAddress',[authenticateToken,AuthorizedForCustomer], async (req, res, next) => {
     try {
         const { userId, addFields } = req.body;
         
@@ -171,7 +173,7 @@ router.post('/addNewAddress', async (req, res, next) => {
         res.status(500).json({ result: false, message: 'add new address error(Api): ' + error })
     }
 })
-router.post('/updateAddress', async (req, res, next) => {
+router.post('/updateAddress',[authenticateToken,AuthorizedForCustomer], async (req, res, next) => {
     try {
         const { userId, updateFields, addressId } = req.body;
         const response = await userController.updateAddress(userId, updateFields, addressId)
@@ -182,7 +184,7 @@ router.post('/updateAddress', async (req, res, next) => {
         res.status(500).json({ result: false, message: 'update address error(Api): ' + error })
     }
 })
-router.post('/deleteAddress', async (req, res, next) => {
+router.post('/deleteAddress',[authenticateToken,AuthorizedForCustomer], async (req, res, next) => {
     try {
         const { userId, addressId } = req.body;
         const response = await userController.deleteAddress(userId, addressId)
@@ -193,7 +195,7 @@ router.post('/deleteAddress', async (req, res, next) => {
         res.status(500).json({ result: false, message: 'delete address error(Api): ' + error })
     }
 })
-router.post('/setDefaultAddress', async (req, res, next) => {
+router.post('/setDefaultAddress',[authenticateToken,AuthorizedForCustomer], async (req, res, next) => {
     try {
         const { userId, addressId } = req.body;
         const response = await userController.setDefaultAddress(userId, addressId)

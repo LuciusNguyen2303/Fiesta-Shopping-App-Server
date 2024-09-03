@@ -1,11 +1,13 @@
 const express = require('express')
 const router = express.Router();
 const categoryController = require('../../src/components/category/CategoryController')
-const {uploadFile} = require("../../src/middleware/UploadFile")
+const {uploadFile} = require("../../src/middleware/UploadFile");
+const { authenticateToken } = require('../../src/middleware/jwtValidation');
+const { AuthorizedForAdmin, AuthorizedForStaff } = require('../../src/middleware/Authorized');
 
 // http://localhost:3000/api/category/addCategory
 
-router.post('/addCategory', async (req, res, next) => {
+router.post('/addCategory',[authenticateToken,AuthorizedForAdmin,AuthorizedForStaff], async (req, res, next) => {
     try {
         const data = req.body;
         if (data) {
@@ -24,7 +26,7 @@ router.post('/addCategory', async (req, res, next) => {
     }
 });
 
-router.post('/editCategory', async (req, res, next) => {
+router.post('/editCategory',[authenticateToken,AuthorizedForAdmin,AuthorizedForStaff], async (req, res, next) => {
     try {
         const data = req.body;
 
@@ -46,7 +48,7 @@ router.post('/editCategory', async (req, res, next) => {
 
     }
 });
-router.get('/getCategory', async (req, res, next) => {
+router.get('/getCategory',[authenticateToken], async (req, res, next) => {
     try {
 
         const data = await categoryController.getAllCategory()
@@ -63,7 +65,7 @@ router.get('/getCategory', async (req, res, next) => {
 
     }
 });
-router.post('/deleteCategory/:id', async (req, res, next) => {
+router.post('/deleteCategory/:id',[authenticateToken,AuthorizedForAdmin,AuthorizedForStaff], async (req, res, next) => {
     try {
         const { id } = req.params;
 
@@ -95,7 +97,7 @@ router.get('/getCategorybyId', async (req, res, next) => {
     }
 })
 
-router.post('/deleteTheItemsCategory/:id', async (req, res, next) => {
+router.post('/deleteTheItemsCategory/:id',[authenticateToken,AuthorizedForAdmin,AuthorizedForStaff], async (req, res, next) => {
     try {
         const {id} = req.params;
         const {data}=req.body

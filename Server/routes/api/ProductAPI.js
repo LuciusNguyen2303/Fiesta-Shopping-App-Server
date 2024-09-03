@@ -4,10 +4,12 @@ const productController = require('../../src/components/product/ProductControlle
 const {uploadFile} = require("../../src/middleware/UploadFile");
 const { totalPages } = require('../../src/components/public method');
 const { countDocuments } = require('../../src/components/category/categoryModel');
+const { authenticateToken } = require('../../src/middleware/jwtValidation');
+const { AuthorizedForAdmin, AuthorizedForStaff, AuthorizedForCustomer } = require('../../src/middleware/Authorized');
 
 // http://localhost:3000/api/productApi/addProduct
 // Thêm sản phẩm
-router.post('/addProduct', async (req, res, next) => {
+router.post('/addProduct',[authenticateToken,AuthorizedForAdmin,AuthorizedForStaff], async (req, res, next) => {
     try {
         let { body } = req;
         const {
@@ -26,7 +28,7 @@ router.post('/addProduct', async (req, res, next) => {
 })
 
 // Lấy thông tin tất cả sản phẩm
-router.get('/getAllProduct', async (req, res, next) => {
+router.get('/getAllProduct',[authenticateToken,AuthorizedForAdmin,AuthorizedForStaff], async (req, res, next) => {
     try {
         let { body } = req;
         const { name, price, quantity } = body;
@@ -40,7 +42,7 @@ router.get('/getAllProduct', async (req, res, next) => {
 })
 
 
-router.get('/getProductListByCategory', async (req, res, next) => {
+router.get('/getProductListByCategory',[authenticateToken,AuthorizedForCustomer,AuthorizedForAdmin,AuthorizedForStaff], async (req, res, next) => {
     try {
         let { body } = req;
         const { pages } = body;
@@ -52,7 +54,7 @@ router.get('/getProductListByCategory', async (req, res, next) => {
         return res.status(500).json({ result: false, message: 'getAllProduct Error(Api): ' + error })
     }
 })
-router.get('/getProductList', async (req, res, next) => {
+router.get('/getProductList',[authenticateToken,AuthorizedForCustomer,AuthorizedForAdmin,AuthorizedForStaff], async (req, res, next) => {
     try {
         let { body } = req;
         const { pages } = body;
@@ -64,31 +66,7 @@ router.get('/getProductList', async (req, res, next) => {
         return res.status(500).json({ result: false, message: 'getAllProduct Error(Api): ' + error })
     }
 })
-// router.get('/getProductListByTrend', async (req, res, next) => {
-//     try {
-//         let { body } = req;
-//         const { name, price, quantity } = body;
-//         const products = await productController.getAllProduct(name, price, quantity);
-//         return products ?
-//             res.status(200).json({ result: true, message: 'getAllProduct succesfully', data: products }) :
-//             res.status(400).json({ result: false, message: 'getAllProduct failed' })
-//     } catch (error) {
-//         return res.status(500).json({ result: false, message: 'getAllProduct Error(Api): ' + error })
-//     }
-// })
-// router.get('/getProductListByBestSelling', async (req, res, next) => {
-//     try {
-//         let { body } = req;
-//         const { name, price, quantity } = body;
-//         const products = await productController.getAllProduct(name, price, quantity);
-//         return products ?
-//             res.status(200).json({ result: true, message: 'getAllProduct succesfully', data: products }) :
-//             res.status(400).json({ result: false, message: 'getAllProduct failed' })
-//     } catch (error) {
-//         return res.status(500).json({ result: false, message: 'getAllProduct Error(Api): ' + error })
-//     }
-// })
-router.get('/getProductListByStandard', async (req, res, next) => {
+router.get('/getProductListByStandard',[authenticateToken,AuthorizedForCustomer], async (req, res, next) => {
     try {
         let { type } = req.query;
         const products = await productController.getProductListByStandard(type);
@@ -99,7 +77,7 @@ router.get('/getProductListByStandard', async (req, res, next) => {
         return res.status(500).json({ result: false, message: 'getProductListByStandard Error(Api): ' + error })
     }
 })
-router.get('/getProductListHome', async (req, res, next) => {
+router.get('/getProductListHome',[authenticateToken,AuthorizedForCustomer], async (req, res, next) => {
     try {
         let { body } = req;
         const { name, price, quantity } = body;
@@ -112,7 +90,7 @@ router.get('/getProductListHome', async (req, res, next) => {
     }
 })
 // Sửa thông tin sản phẩm theo ID
-router.post('/updateProduct', async (req, res, next) => {
+router.post('/updateProduct',[authenticateToken,AuthorizedForAdmin,AuthorizedForStaff], async (req, res, next) => {
     try {
         let { productID } = req.query;
         const { updateFields } = req.body;
@@ -129,7 +107,7 @@ router.post('/updateProduct', async (req, res, next) => {
 })
 
 // Lấy thông tin sản phẩm theo ID
-router.get('/getProductByID', async (req, res, next) => {
+router.get('/getProductByID',[authenticateToken,AuthorizedForAdmin,AuthorizedForCustomer,AuthorizedForStaff], async (req, res, next) => {
     try {
         let { id } = req.query
         const product = await productController.getProductByID(id);
@@ -140,7 +118,7 @@ router.get('/getProductByID', async (req, res, next) => {
         return res.status(500).json({ result: false, message: 'getProductByID Error(Api): ' + error })
     }
 })
-router.get('/getProductByID', async (req, res, next) => {
+router.get('/getProductByID',[authenticateToken,AuthorizedForAdmin,AuthorizedForCustomer,AuthorizedForStaff], async (req, res, next) => {
     try {
         let { productID } = req.query
         const product = await productController.getProductByID(productID);
@@ -151,7 +129,7 @@ router.get('/getProductByID', async (req, res, next) => {
         return res.status(500).json({ result: false, message: 'getProductByID Error(Api): ' + error })
     }
 })
-router.post('/deleteAttributesInProduct', async (req, res, next) => {
+router.post('/deleteAttributesInProduct',[authenticateToken,AuthorizedForAdmin,AuthorizedForStaff], async (req, res, next) => {
     try {
         let { productID } = req.query
         let { updateFields } = req.body
@@ -163,7 +141,7 @@ router.post('/deleteAttributesInProduct', async (req, res, next) => {
         return res.status(500).json({ result: false, message: 'getProductByID Error(Api): ' + error })
     }
 })
-router.post('/deleteProduct', async (req, res, next) => {
+router.post('/deleteProduct',[authenticateToken,AuthorizedForAdmin,AuthorizedForStaff], async (req, res, next) => {
     try {
         let { updateFields } = req.body
         const { productIDs } = updateFields
@@ -176,7 +154,7 @@ router.post('/deleteProduct', async (req, res, next) => {
     }
 })
 // Tìm kiếm sản phẩm theo điều kiện
-router.get('/searchProducts', async (req, res, next) => {
+router.get('/searchProducts',[authenticateToken,AuthorizedForCustomer], async (req, res, next) => {
     // try {
         const products = await productController.searchProducts(req);
         console.log(JSON.stringify(req.query));
@@ -187,7 +165,7 @@ router.get('/searchProducts', async (req, res, next) => {
     //     return res.status(500).json({ result: false, message: 'searchProducts Error(Api): ' + error })
     // }
 })
-router.get('/checkVaritationProductStock', async (req, res, next) => {
+router.get('/checkVaritationProductStock',[authenticateToken,AuthorizedForCustomer], async (req, res, next) => {
     try {
         const stock = await productController.checkProductVariationStock(req)
         if(stock)
@@ -197,7 +175,7 @@ router.get('/checkVaritationProductStock', async (req, res, next) => {
         console.log('checkProductVariationStock error (Api): ' + error);
     }
 })
-router.get('/getStockProduct', async (req, res, next) => {
+router.get('/getStockProduct',[authenticateToken,AuthorizedForCustomer], async (req, res, next) => {
     try {
         const {productId,variationId} = req.query;
         const stock = await productController.getStockProduct(productId,variationId)
@@ -208,7 +186,7 @@ router.get('/getStockProduct', async (req, res, next) => {
         console.log('checkProductVariationStock error (Api): ' + error);
     }
 })
-router.post('/getStockManyProducts', async (req, res, next) => {
+router.post('/getStockManyProducts',[authenticateToken,AuthorizedForCustomer], async (req, res, next) => {
     try {
         const {items} = req.body;
         

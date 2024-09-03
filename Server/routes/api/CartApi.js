@@ -4,8 +4,10 @@ const cartController = require("../../src/components/cart/cartController");
 const { DivideVariationsFromCarts, calculatePrice, validateCarts } = require('./PaymentMethod/CalculatePriceFromServer');
 const productController = require('../../src/components/product/ProductController');
 const CustomError = require('../../src/HandleError');
+const { authenticateToken } = require('../../src/middleware/jwtValidation');
+const { AuthorizedForCustomer } = require('../../src/middleware/Authorized');
 // http://localhost:3000/api/cart/
-router.post("/add", async (req, res, next) => {
+router.post("/add",[authenticateToken,AuthorizedForCustomer], async (req, res, next) => {
     try {
         const { addFields } = req.body;
 
@@ -19,7 +21,7 @@ router.post("/add", async (req, res, next) => {
 
     }
 })
-router.post("/update", async (req, res, nex) => {
+router.post("/update",[authenticateToken,AuthorizedForCustomer], async (req, res, nex) => {
     try {
         const { updateFields } = req.body;
         const { cartID } = req.query;
@@ -33,7 +35,7 @@ router.post("/update", async (req, res, nex) => {
 
     }
 })
-router.post("/delete", async (req, res, nex) => {
+router.post("/delete",[authenticateToken,AuthorizedForCustomer], async (req, res, nex) => {
     try {
         const { cartID } = req.query;
         const request = await cartController.deleteCart(cartID)
@@ -46,7 +48,7 @@ router.post("/delete", async (req, res, nex) => {
 
     }
 })
-router.post("/deleteCarts", async (req, res, nex) => {
+router.post("/deleteCarts",[authenticateToken,AuthorizedForCustomer], async (req, res, nex) => {
     try {
         const { cartIDs } = req.body;
         const request = await cartController.deleteManyCarts(cartIDs)
@@ -59,7 +61,7 @@ router.post("/deleteCarts", async (req, res, nex) => {
 
     }
 })
-router.post('/total', async (req, res, next) => {
+router.post('/total',[authenticateToken,AuthorizedForCustomer], async (req, res, next) => {
     try {
         const data = req.body;
         // check if not valid data ?
@@ -80,7 +82,7 @@ router.post('/total', async (req, res, next) => {
         return res.status(500).json({ message: error, statusCode: 500 })
     }
 });
-router.get("/getByPage/:page/:userId", async (req, res, nex) => {
+router.get("/getByPage/:page/:userId",[authenticateToken,AuthorizedForCustomer], async (req, res, nex) => {
     try {
         const { page, userId } = req.params;
         console.log(page, userId);
@@ -94,7 +96,7 @@ router.get("/getByPage/:page/:userId", async (req, res, nex) => {
 
     }
 })
-router.get("/getCartByIds", async (req, res, next) => {
+router.get("/getCartByIds",[authenticateToken,AuthorizedForCustomer], async (req, res, next) => {
     try {
         const { getFields, userId } = req.query;
         

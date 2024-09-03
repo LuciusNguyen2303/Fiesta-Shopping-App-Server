@@ -7,9 +7,11 @@ const { stripe } = require('../api/PaymentMethod/Stripe')
 const PaymentMethodController = require('../../src/components/PaymentMethod/PaymentMethodController');
 const UserController = require('../../src/components/user/UserController');
 const { CustomerUpdateFields } = require('../../src/components/public method');
+const { authenticateToken } = require('../../src/middleware/jwtValidation');
+const { AuthorizedForCustomer } = require('../../src/middleware/Authorized');
 // http://localhost:3000/api/payment/
 
-router.post('/intent', async (req, res, next) => {
+router.post('/intent',[authenticateToken,AuthorizedForCustomer], async (req, res, next) => {
     try {
         const data = req.body;
         // check if not valid data ?
@@ -80,7 +82,7 @@ router.post('/test', async (req, res, next) => {
         return res.status(500).json({ message: error, statusCode: 500 })
     }
 });
-router.post('/cancelPaymentIntents/:paymentId/:userId', async (req, res, next) => {
+router.post('/cancelPaymentIntents/:paymentId/:userId',[authenticateToken,AuthorizedForCustomer], async (req, res, next) => {
     try {
         const { paymentId, userId } = req.params;
 
@@ -110,7 +112,7 @@ router.post('/cancelPaymentIntents/:paymentId/:userId', async (req, res, next) =
     }
 });
 
-router.post('/save-card', async (req, res, next) => {
+router.post('/save-card',[authenticateToken,AuthorizedForCustomer], async (req, res, next) => {
     try {
         const { userId, token, isDefault } = req.query;
 
@@ -189,7 +191,7 @@ router.post('/save-card', async (req, res, next) => {
         return res.status(500).json({ message: error, statusCode: 500 })
     }
 })
-router.post('/choose-default-card', async (req, res, next) => {
+router.post('/choose-default-card',[authenticateToken,AuthorizedForCustomer], async (req, res, next) => {
     try {
 
         const { userId, paymentMethodId } = req.query;
@@ -214,7 +216,7 @@ router.post('/choose-default-card', async (req, res, next) => {
         return res.status(500).json({ message: error, statusCode: 500 })
     }
 })
-router.get('/get-card-list/:userId', async (req, res, next) => {
+router.get('/get-card-list/:userId',[authenticateToken,AuthorizedForCustomer], async (req, res, next) => {
     try {
 
         const { userId } = req.params;
@@ -244,7 +246,7 @@ router.get('/get-card-list/:userId', async (req, res, next) => {
     }
 })
 
-router.get('/get-default-card/:userId', async (req, res, next) => {
+router.get('/get-default-card/:userId',[authenticateToken,AuthorizedForCustomer], async (req, res, next) => {
     try {
 
         const { userId } = req.params;
@@ -271,7 +273,7 @@ router.get('/get-default-card/:userId', async (req, res, next) => {
         return res.status(500).json({ message: error, statusCode: 500 })
     }
 })
-router.post('/delete-card', async (req, res, next) => {
+router.post('/delete-card',[authenticateToken,AuthorizedForCustomer], async (req, res, next) => {
     try {
 
         const { userId, paymentMethodId } = req.query;

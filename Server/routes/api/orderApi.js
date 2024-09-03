@@ -1,11 +1,13 @@
 const express = require("express")
 const route = express.Router();
 const orderController = require("../../src/components/order/orderController")
-const { stripe } = require('../api/PaymentMethod/Stripe')
+const { stripe } = require('../api/PaymentMethod/Stripe');
+const { AuthorizedForCustomer, AuthorizedForAdmin, AuthorizedForStaff } = require("../../src/middleware/Authorized");
+const { authenticateToken } = require("../../src/middleware/jwtValidation");
 
 // http://localhost:3000/api/order
 
-route.post("/createOrder", async (req, res, next) => {
+route.post("/createOrder",[authenticateToken,AuthorizedForCustomer], async (req, res, next) => {
     try {
 
         const { userId, payments, shipping, products } = req.body;
@@ -24,7 +26,7 @@ route.post("/createOrder", async (req, res, next) => {
     }
 
 })
-route.post("/updateStatusOrder", async (req, res, next) => {
+route.post("/updateStatusOrder",[authenticateToken,AuthorizedForAdmin,AuthorizedForStaff], async (req, res, next) => {
     try {
 
         const { status } = req.body;
@@ -48,7 +50,7 @@ route.post("/updateStatusOrder", async (req, res, next) => {
     }
 
 })
-route.get("/getOrder", async (req, res, next) => {
+route.get("/getOrder",[authenticateToken,AuthorizedForCustomer], async (req, res, next) => {
     try {
 
         const { page, userId } = req.query;
@@ -71,7 +73,7 @@ route.get("/getOrder", async (req, res, next) => {
     }
 
 })
-route.get("/getOrderByUser", async (req, res, next) => {
+route.get("/getOrderByUser",[authenticateToken,AuthorizedForCustomer], async (req, res, next) => {
     try {
 
 
@@ -90,7 +92,7 @@ route.get("/getOrderByUser", async (req, res, next) => {
     }
 
 })
-route.get("/getOrderById", async (req, res, next) => {
+route.get("/getOrderById",[authenticateToken,AuthorizedForAdmin,AuthorizedForCustomer,AuthorizedForStaff], async (req, res, next) => {
     try {
 
         const { orderId } = req.query;
@@ -107,7 +109,7 @@ route.get("/getOrderById", async (req, res, next) => {
     }
 
 })
-route.post("/delete/:userId", async (req, res, next) => {
+route.post("/delete/:userId",[authenticateToken,AuthorizedForAdmin,AuthorizedForCustomer,AuthorizedForStaff], async (req, res, next) => {
     try {
 
         const { userId } = req.params;
@@ -125,7 +127,7 @@ route.post("/delete/:userId", async (req, res, next) => {
     }
 
 })
-route.post("/cancelOrder", async (req, res, next) => {
+route.post("/cancelOrder",[authenticateToken,AuthorizedForAdmin,AuthorizedForCustomer,AuthorizedForStaff], async (req, res, next) => {
     try {
 
         const { order } = req.body;
