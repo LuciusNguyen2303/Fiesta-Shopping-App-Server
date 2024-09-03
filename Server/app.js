@@ -14,7 +14,8 @@ var cartRouter = require('./routes/api/CartApi')
 var orderRouter = require('./routes/api/orderApi')
 var reviewRouter = require('./routes/api/ReviewApi')
 var paymentRouter = require('./routes/api/PaymentApi')
-
+const dbName = "FashionFiesta"
+require('dotenv').config();
 var app = express();
 /* 
   RateLimit is a library that can prevent the server from overloading the request in a specific time !!!
@@ -27,6 +28,7 @@ const limiter = rateLimit({
 });
 
 // mongo DB connect
+// mongoose.connect(`mongodb+srv://nhatccg456:${process.env.ATLAS_PASSWORD}@cluster0.fn2hqad.mongodb.net/${dbName}?retryWrites=true&w=majority&appName=Cluster0`).then(() => console.log('Database Connected!')).catch(err => console.log('Database Error: ', err));
 mongoose.connect('mongodb://127.0.0.1:27017/FashionFiesta?readPreference=primary&appname=MongoDB%20Compass&directConnection=true&ssl=false', {
   
 }).then(() => console.log('Database Connected!')).catch(err => console.log('Database Error: ', err));
