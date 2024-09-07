@@ -9,7 +9,7 @@ const { AuthorizedForAdmin, AuthorizedForStaff, AuthorizedForCustomer } = requir
 
 // http://localhost:3000/api/productApi/addProduct
 // Thêm sản phẩm
-router.post('/addProduct',[authenticateToken,AuthorizedForAdmin,AuthorizedForStaff], async (req, res, next) => {
+router.post('/addProduct',[authenticateToken,AuthorizedForAdmin], async (req, res, next) => {
     try {
         let { body } = req;
         const {
@@ -28,7 +28,7 @@ router.post('/addProduct',[authenticateToken,AuthorizedForAdmin,AuthorizedForSta
 })
 
 // Lấy thông tin tất cả sản phẩm
-router.get('/getAllProduct',[authenticateToken,AuthorizedForAdmin,AuthorizedForStaff], async (req, res, next) => {
+router.get('/getAllProduct',[authenticateToken], async (req, res, next) => {
     try {
         let { body } = req;
         const { name, price, quantity } = body;
@@ -42,7 +42,7 @@ router.get('/getAllProduct',[authenticateToken,AuthorizedForAdmin,AuthorizedForS
 })
 
 
-router.get('/getProductListByCategory',[authenticateToken,AuthorizedForCustomer,AuthorizedForAdmin,AuthorizedForStaff], async (req, res, next) => {
+router.get('/getProductListByCategory',[authenticateToken], async (req, res, next) => {
     try {
         let { body } = req;
         const { pages } = body;
@@ -54,7 +54,7 @@ router.get('/getProductListByCategory',[authenticateToken,AuthorizedForCustomer,
         return res.status(500).json({ result: false, message: 'getAllProduct Error(Api): ' + error })
     }
 })
-router.get('/getProductList',[authenticateToken,AuthorizedForCustomer,AuthorizedForAdmin,AuthorizedForStaff], async (req, res, next) => {
+router.get('/getProductList',[authenticateToken], async (req, res, next) => {
     try {
         let { body } = req;
         const { pages } = body;
@@ -66,7 +66,7 @@ router.get('/getProductList',[authenticateToken,AuthorizedForCustomer,Authorized
         return res.status(500).json({ result: false, message: 'getAllProduct Error(Api): ' + error })
     }
 })
-router.get('/getProductListByStandard',[authenticateToken,AuthorizedForCustomer], async (req, res, next) => {
+router.get('/getProductListByStandard',[authenticateToken], async (req, res, next) => {
     try {
         let { type } = req.query;
         const products = await productController.getProductListByStandard(type);
@@ -77,7 +77,7 @@ router.get('/getProductListByStandard',[authenticateToken,AuthorizedForCustomer]
         return res.status(500).json({ result: false, message: 'getProductListByStandard Error(Api): ' + error })
     }
 })
-router.get('/getProductListHome',[authenticateToken,AuthorizedForCustomer], async (req, res, next) => {
+router.get('/getProductListHome',[authenticateToken], async (req, res, next) => {
     try {
         let { body } = req;
         const { name, price, quantity } = body;
@@ -90,7 +90,7 @@ router.get('/getProductListHome',[authenticateToken,AuthorizedForCustomer], asyn
     }
 })
 // Sửa thông tin sản phẩm theo ID
-router.post('/updateProduct',[authenticateToken,AuthorizedForAdmin,AuthorizedForStaff], async (req, res, next) => {
+router.post('/updateProduct',[authenticateToken,AuthorizedForAdmin], async (req, res, next) => {
     try {
         let { productID } = req.query;
         const { updateFields } = req.body;
@@ -107,7 +107,7 @@ router.post('/updateProduct',[authenticateToken,AuthorizedForAdmin,AuthorizedFor
 })
 
 // Lấy thông tin sản phẩm theo ID
-router.get('/getProductByID',[authenticateToken,AuthorizedForAdmin,AuthorizedForCustomer,AuthorizedForStaff], async (req, res, next) => {
+router.get('/getProductByID',[authenticateToken], async (req, res, next) => {
     try {
         let { id } = req.query
         const product = await productController.getProductByID(id);
@@ -118,7 +118,7 @@ router.get('/getProductByID',[authenticateToken,AuthorizedForAdmin,AuthorizedFor
         return res.status(500).json({ result: false, message: 'getProductByID Error(Api): ' + error })
     }
 })
-router.get('/getProductByID',[authenticateToken,AuthorizedForAdmin,AuthorizedForCustomer,AuthorizedForStaff], async (req, res, next) => {
+router.get('/getProductByID',[authenticateToken], async (req, res, next) => {
     try {
         let { productID } = req.query
         const product = await productController.getProductByID(productID);
@@ -129,7 +129,7 @@ router.get('/getProductByID',[authenticateToken,AuthorizedForAdmin,AuthorizedFor
         return res.status(500).json({ result: false, message: 'getProductByID Error(Api): ' + error })
     }
 })
-router.post('/deleteAttributesInProduct',[authenticateToken,AuthorizedForAdmin,AuthorizedForStaff], async (req, res, next) => {
+router.post('/deleteAttributesInProduct',[authenticateToken,AuthorizedForAdmin], async (req, res, next) => {
     try {
         let { productID } = req.query
         let { updateFields } = req.body
@@ -141,7 +141,7 @@ router.post('/deleteAttributesInProduct',[authenticateToken,AuthorizedForAdmin,A
         return res.status(500).json({ result: false, message: 'getProductByID Error(Api): ' + error })
     }
 })
-router.post('/deleteProduct',[authenticateToken,AuthorizedForAdmin,AuthorizedForStaff], async (req, res, next) => {
+router.post('/deleteProduct',[authenticateToken,AuthorizedForAdmin], async (req, res, next) => {
     try {
         let { updateFields } = req.body
         const { productIDs } = updateFields
@@ -154,7 +154,7 @@ router.post('/deleteProduct',[authenticateToken,AuthorizedForAdmin,AuthorizedFor
     }
 })
 // Tìm kiếm sản phẩm theo điều kiện
-router.get('/searchProducts',[authenticateToken,AuthorizedForCustomer], async (req, res, next) => {
+router.get('/searchProducts',[authenticateToken], async (req, res, next) => {
     // try {
         const products = await productController.searchProducts(req);
         console.log(JSON.stringify(req.query));
@@ -165,7 +165,7 @@ router.get('/searchProducts',[authenticateToken,AuthorizedForCustomer], async (r
     //     return res.status(500).json({ result: false, message: 'searchProducts Error(Api): ' + error })
     // }
 })
-router.get('/checkVaritationProductStock',[authenticateToken,AuthorizedForCustomer], async (req, res, next) => {
+router.get('/checkVaritationProductStock',[authenticateToken], async (req, res, next) => {
     try {
         const stock = await productController.checkProductVariationStock(req)
         if(stock)
@@ -175,7 +175,7 @@ router.get('/checkVaritationProductStock',[authenticateToken,AuthorizedForCustom
         console.log('checkProductVariationStock error (Api): ' + error);
     }
 })
-router.get('/getStockProduct',[authenticateToken,AuthorizedForCustomer], async (req, res, next) => {
+router.get('/getStockProduct',[authenticateToken], async (req, res, next) => {
     try {
         const {productId,variationId} = req.query;
         const stock = await productController.getStockProduct(productId,variationId)
@@ -186,7 +186,7 @@ router.get('/getStockProduct',[authenticateToken,AuthorizedForCustomer], async (
         console.log('checkProductVariationStock error (Api): ' + error);
     }
 })
-router.post('/getStockManyProducts',[authenticateToken,AuthorizedForCustomer], async (req, res, next) => {
+router.post('/getStockManyProducts',[authenticateToken], async (req, res, next) => {
     try {
         const {items} = req.body;
         

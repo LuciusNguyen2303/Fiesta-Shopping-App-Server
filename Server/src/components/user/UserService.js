@@ -126,7 +126,6 @@ const signIn = async (userName, password) => {
             return {
                 token: {
                     accessToken,
-                    refreshToken
                 },
                 user
             }

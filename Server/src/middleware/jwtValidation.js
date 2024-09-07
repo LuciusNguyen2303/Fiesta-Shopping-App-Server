@@ -18,6 +18,7 @@ const authenticateToken = async (req, res, next) => {
                 console.log('Bad to go');
             }
         } else {
+            throw new Error("No token in headers")
             console.log('Cant move to headers or headers not valid');
         }
 
@@ -47,7 +48,7 @@ const authenticateToken = async (req, res, next) => {
         }
 
     } catch (error) {
-        return res.status(500).json({ result: false, token: null, message: check.message + "NOOOO" });
+        return res.status(500).json({ result: false, token: null, message: "ERROR TOKEN VALIDATION: "+error.message });
 
     }
 }

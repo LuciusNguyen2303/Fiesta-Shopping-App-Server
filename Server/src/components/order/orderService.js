@@ -86,7 +86,7 @@ const getOrderById = async (orderId) => {
                                 variation: {
                                     _id: "$variations._id",
                                     dimension: "$variations.dimension",
-                                    image: "$variations.image",
+                                    subImage: "$variations.subImage",
                                     type: "$variations.type",
                                     SKU: "$variations.SKU",
                                     price: "$variations.price",

@@ -26,7 +26,7 @@ route.post("/createOrder",[authenticateToken,AuthorizedForCustomer], async (req,
     }
 
 })
-route.post("/updateStatusOrder",[authenticateToken,AuthorizedForAdmin,AuthorizedForStaff], async (req, res, next) => {
+route.post("/updateStatusOrder",[authenticateToken,AuthorizedForAdmin], async (req, res, next) => {
     try {
 
         const { status } = req.body;
@@ -50,7 +50,7 @@ route.post("/updateStatusOrder",[authenticateToken,AuthorizedForAdmin,Authorized
     }
 
 })
-route.get("/getOrder",[authenticateToken,AuthorizedForCustomer], async (req, res, next) => {
+route.get("/getOrder",[authenticateToken,AuthorizedForAdmin], async (req, res, next) => {
     try {
 
         const { page, userId } = req.query;
@@ -92,7 +92,7 @@ route.get("/getOrderByUser",[authenticateToken,AuthorizedForCustomer], async (re
     }
 
 })
-route.get("/getOrderById",[authenticateToken,AuthorizedForAdmin,AuthorizedForCustomer,AuthorizedForStaff], async (req, res, next) => {
+route.get("/getOrderById",[authenticateToken], async (req, res, next) => {
     try {
 
         const { orderId } = req.query;
@@ -109,7 +109,7 @@ route.get("/getOrderById",[authenticateToken,AuthorizedForAdmin,AuthorizedForCus
     }
 
 })
-route.post("/delete/:userId",[authenticateToken,AuthorizedForAdmin,AuthorizedForCustomer,AuthorizedForStaff], async (req, res, next) => {
+route.post("/delete/:userId",[authenticateToken,AuthorizedForAdmin], async (req, res, next) => {
     try {
 
         const { userId } = req.params;
@@ -127,7 +127,7 @@ route.post("/delete/:userId",[authenticateToken,AuthorizedForAdmin,AuthorizedFor
     }
 
 })
-route.post("/cancelOrder",[authenticateToken,AuthorizedForAdmin,AuthorizedForCustomer,AuthorizedForStaff], async (req, res, next) => {
+route.post("/cancelOrder",[authenticateToken], async (req, res, next) => {
     try {
 
         const { order } = req.body;

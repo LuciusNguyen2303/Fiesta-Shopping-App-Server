@@ -12,7 +12,7 @@ const { AuthorizedForAdmin, AuthorizedForStaff, AuthorizedForCustomer } = requir
 
 // http://localhost:3000/api/userApi/addUser
 
-router.post('/addUser', [authenticateToken,AuthorizedForAdmin,AuthorizedForStaff,addUser_Validation], async (req, res, next) => {
+router.post('/addUser', async (req, res, next) => {
     try {
         const { name, userName, password } = req.body;
         console.log(name, userName, password);
@@ -28,10 +28,12 @@ router.post('/addUser', [authenticateToken,AuthorizedForAdmin,AuthorizedForStaff
 // http://localhost:3000/api/userApi/login
 router.post('/login', async (req, res, next) => {
     try {
-        const { userName, password } = req.body;
-        const response = await userController.signIn(userName, password);
+        const { userName, cpassword } = req.body;
+        const response = await userController.signIn(userName, cpassword);
+        console.log(response.token);
+        const {refreshToken,role,isLock,isHidden,password,...user}=response.user._doc
         return response ?
-            res.status(200).json({ result: true, message: 'Login successfully', data: response, statusCode: 200 }) :
+            res.status(200).json({ result: true, message: 'Login successfully', token: response.token.accessToken,user:user, statusCode: 200 }) :
             res.status(400).json({ result: false, message: 'Login failed', statusCode: 400 })
     } catch (error) {
         return res.status(500).json({ result: false, message: 'addUser Error(Api): ' + error, statusCode: 500 })
@@ -45,7 +47,7 @@ router.post('/login', async (req, res, next) => {
 
 
 */
-router.get("/getUserInfo/:id",[authenticateToken,AuthorizedForAdmin,AuthorizedForStaff,AuthorizedForCustomer], async (req, res, next) => {
+router.get("/getUserInfo/:id",[authenticateToken], async (req, res, next) => {
     try {
         const { id } = req.params;
         const data = await userController.getUserbyId(id)
@@ -67,23 +69,24 @@ router.post('/testAuthen', [authenticateToken], async (req, res, next) => {
     }
 })
 
-router.post('/updateUser/:id', [authenticateToken,AuthorizedForAdmin,AuthorizedForStaff,AuthorizedForCustomer,uploadFile], async (req, res, next) => {
+router.post('/updateUser/:id', [authenticateToken,uploadFile], async (req, res, next) => {
     try {
         const { id } = req.params
         const { updateFields } = req.body;
         const updatedData = await hostUpdateImageToCDN(JSON.parse(updateFields), req, "Users")
         // console.log(">>>updatedData",JSON.stringify(updatedData))
         const result = await userController.updateUserInfo(id, updatedData)
-
+        console.log(result);
+        
         return result ? res.status(200).json({ result: true, data: result }) :
-            res.status(400).json({ result: false, data: result })
+            res.status(400).json({ result: false, data: null })
 
 
     } catch (error) {
         return res.status(500).json({ result: false, message: 'updateUser Error(Api): ' + error })
     }
 })
-router.post('/changePassword',[authenticateToken,AuthorizedForAdmin,AuthorizedForStaff,AuthorizedForCustomer], async (req, res, next) => {
+router.post('/changePassword',[authenticateToken,], async (req, res, next) => {
     try {
         const { username, currentPassword, newPassword } = req.body;
         const result = await userController.changePassword(username, currentPassword, newPassword)
