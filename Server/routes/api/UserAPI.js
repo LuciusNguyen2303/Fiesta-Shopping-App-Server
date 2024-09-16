@@ -36,6 +36,7 @@ router.post('/login', async (req, res, next) => {
             res.status(200).json({ result: true, message: 'Login successfully', token: response.token.accessToken, user: user, statusCode: 200 }) :
             res.status(400).json({ result: false, message: 'Login failed', statusCode: 400 })
     } catch (error) {
+        
         return res.status(500).json({ result: false, message: 'Login Error(Api): ' + error, statusCode: 500 })
     }
 })
@@ -69,12 +70,13 @@ router.get('/user', [authenticateToken], async (req, res, next) => {
     }
 })
 
-router.post('/updateUser/:id', [authenticateToken, uploadFile], async (req, res, next) => {
+router.post('/updateUser/:id', [
+    // authenticateToken
+     uploadFile], async (req, res, next) => {
     try {
         const { id } = req.params
         const { updateFields } = req.body;
         const updatedData = await hostUpdateImageToCDN(JSON.parse(updateFields), req, "Users")
-        // console.log(">>>updatedData",JSON.stringify(updatedData))
         const result = await userController.updateUserInfo(id, updatedData)
         console.log(result);
 

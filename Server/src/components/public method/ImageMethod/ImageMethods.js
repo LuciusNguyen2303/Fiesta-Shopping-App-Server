@@ -5,8 +5,9 @@ const imagekit = require('./ImageInitization')
 */
 const uploadImage = async (image, pathR) => {
     try {
-        if (validateInput(image) == "invalid")
-            return null
+        // if (validateInput(image) == "invalid")
+        //     return null
+        
         const response = await imagekit.upload({
             file: image,
             fileName: Date.now() + '.jpg',

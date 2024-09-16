@@ -2,14 +2,13 @@ const { upload } = require("./MulterInitization")
 const multer = require('multer')
 
 function uploadFile(req, res, next) {
-    const uploadFiles = upload.fields([{ name: 'images' }, { name: 'subImages' }]);
-
+    const uploadFiles = upload.fields([{ name: 'images' }, { name: 'subImages' },{name:"subImage"}]);
+    
     uploadFiles(req, res, function (err) {
         try {
 
             if (err instanceof multer.MulterError) {
                 console.log("Uploading images to server error(api)", err);
-
                 // A Multer error occurred when uploading.
                 return res.status(500).json({ error: err })
             } else if (err) {
@@ -21,6 +20,8 @@ function uploadFile(req, res, next) {
             }
 
         } catch (error) {
+            console.log("MULTER UPLOAD ERROR: ",error);
+            
             return res.status(500).json({ error: error })
 
         }

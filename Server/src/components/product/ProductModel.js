@@ -60,8 +60,8 @@ const productSchema = new Schema({
     stock: { type: Number, required: true },
     rating: { type: Number, default: 0 },
     sold: { type: Number, default: 0 },
-    Description: { type: String },
-    Brand: { type: String },
+    Description: { type: String,default:"" },
+    Brand: { type: String,default:"" },
     variations: [variations],
     isHidden: { type: Boolean, default: false },
     createAt: {type: Date, default: Date.now}

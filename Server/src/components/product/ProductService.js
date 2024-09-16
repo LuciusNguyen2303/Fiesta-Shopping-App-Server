@@ -7,13 +7,13 @@ const productModel = require('./ProductModel')
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 const ObjectId = mongoose.Types.ObjectId
-const getStockProduct = async(productId,variationId)=>{
+const getStockProduct = async (productId, variationId) => {
     try {
-        console.log(productId,variationId);
+        console.log(productId, variationId);
         const result = await productModel.aggregate([
             {
                 $match: {
-                    _id: new ObjectId(productId) 
+                    _id: new ObjectId(productId)
                 }
             },
             {
@@ -31,10 +31,10 @@ const getStockProduct = async(productId,variationId)=>{
                     stock: "$variations.stock"
                 }
             }
-        ])    
-        return result 
+        ])
+        return result
     } catch (error) {
-        console.log("Get stock product error: ",error );
+        console.log("Get stock product error: ", error);
     }
 }
 const getStockManyProducts = async (items) => {
@@ -82,7 +82,7 @@ const getStockManyProducts = async (items) => {
                 variationId: item.variationId,
                 requiredQuantity: item.quantity,
                 stockAvailable: foundItem ? foundItem.stock : 0,
-                isStockSufficient:isStockSufficient?true:false
+                isStockSufficient: isStockSufficient ? true : false
             };
         });
 
@@ -99,28 +99,9 @@ const getStockManyProducts = async (items) => {
 
 
 
-const addProduct = async (
-    category, name, image, price, stock, brand, rating, Description, variations) => {
+const addProduct = async (addFields) => {
     try {
-        // Send image to host Imagekit 
-        const images = await uploadMultipleImages(image, "Products")
-        // Send image of variations to host imagekit
-        if (variations && Array.isArray(variations)) {
-            const variationPromises = variations.map(async (item, index) => {
-                if (Object.keys(item).includes("image")) {
-                    const imageURL = await uploadImage(item["image"], "Products");
-                    item.image = imageURL
-                }
-
-                return item;
-            })
-            variations = await Promise.all(variationPromises);
-        }
-        const newProduct = {
-            category, name, images, price, stock, brand, rating, Description, variations
-        };
-
-        const newP = new productModel(newProduct);
+        const newP = new productModel(addFields);
         return await newP.save();
     } catch (err) {
         console.log("addProduct Error(Service): " + err);
@@ -168,140 +149,114 @@ function generateUpdateQuery(updateFields) {
     let queryUpdate = {
         $set: {}
     };
-    let arrayFilter = [], deleteImageArr = [], updatedImagesArr = [];
+    let arrayFilter = []
 
     try {
-        // Kiểm tra nếu updateFields có thuộc tính variations và variations là một mảng
-        if (!updateFields.variations || !Array.isArray(updateFields.variations)) {
-            throw new Error("Invalid input: updateFields.variations should be a non-empty array");
+        // Kiểm tra nếu updateFields có thuộc tính variation
+        if (!updateFields.variation) {
+            throw new Error("Invalid input: updateFields.variations should be a non-empty object");
         }
-        // Query Update for the images of a products
+        
 
+        const variation = updateFields.variation
+        const keys = Object.keys(variation)
 
-        // Query Update for the variations of a product
+        const _id = updateFields.variation._id;
+        let keyArr = `elements`;
+        for (const index in keys) {
+            const itemVariation=keys[index]
+            let key = `variations.$[${keyArr}].${itemVariation}`;
 
-        for (let index = 0; index < updateFields.variations.length; index++) {
-            let item = updateFields.variations[index];
-            let variationsKeys = Object.keys(item);
-
-            if (variationsKeys.length > 1) {
-
-                const _id = item._id;
-                let keyArr = `elements${index}`;
-
-                for (let itemVariations of variationsKeys) {
-                    if (itemVariations !== "_id" && itemVariations) {
-                        let key = `variations.$[${keyArr}].${itemVariations}`;
-
-                        if (itemVariations == "dimension") {
-                            for (let itemDimensions of Object.keys(item.dimension)) {
-                                queryUpdate = {
-                                    ...queryUpdate,
-                                    $set: {
-                                        ...queryUpdate.$set,
-                                        [key + `.${itemDimensions}`]: item[itemVariations][itemDimensions]
-                                    }
-                                };
-                            }
-                            continue;
+            if (itemVariation == "dimension") {
+                for (let itemDimensions of Object.keys(variation.dimension)) {
+                    queryUpdate = {
+                        ...queryUpdate,
+                        $set: {
+                            ...queryUpdate.$set,
+                            [key + `.${itemDimensions}`]: variation[itemVariation][itemDimensions]
                         }
-
-                        if (itemVariations == "subImage") {
-                            queryUpdate = {
-                                ...queryUpdate,
-                                $set: {
-                                    ...queryUpdate.$set,
-                                    [key]: item["subImage"]
-                                }
-                            };
-                            continue;
-                        }
-
-                        queryUpdate = {
-                            ...queryUpdate,
-                            $set: {
-                                ...queryUpdate.$set,
-                                [key]: item[itemVariations]
-                            }
-                        };
-                    }
+                    };
                 }
 
-                arrayFilter.push({ [`${keyArr}._id`]: _id });
             }
+
+            if (itemVariation == "subImage") {
+                
+                queryUpdate = {
+                    ...queryUpdate,
+                    $set: {
+                        ...queryUpdate.$set,
+                        [key]: variation["subImage"]
+                    }
+                };
+
+            }
+            
+            if(itemVariation!=="dimension"&&itemVariation!=="image"){
+                queryUpdate = {
+                    ...queryUpdate,
+                    $set: {
+                        ...queryUpdate.$set,
+                        [key]: variation[itemVariation]
+                    }
+                };
+            }
+           
+
         }
+
+
+        arrayFilter.push({ [`${keyArr}._id`]: _id });
+
+
     } catch (error) {
         console.log("ERROR generateQueryVariations: " + error);
         return null;
     }
 
-    console.log(JSON.stringify(queryUpdate), JSON.stringify(arrayFilter));
+    console.log(queryUpdate, JSON.stringify(arrayFilter));
 
     return { query: queryUpdate, filter: arrayFilter };
 }
+function generateAddQueryVariations(addFields) {
 
-function generateDeleteQueryVariations(updateFields) {
-    let queryUpdate = {
-
-    }
-    let arrayFilter = [
-
-    ]
     try {
-        updateFields.variations.forEach((item, index) => {
-            let variationsKeys = Object.keys(item);
-            const _id = item._id;
-            let keyArr = `elements${index}`;
-            let keyItem = `variations.$[${keyArr}]`
-            variationsKeys.forEach((itemVariations, index) => {
-                if (itemVariations !== "_id" && itemVariations) {
-                    let key = `variations.$[${keyArr}].${itemVariations}`
-
-                    if (itemVariations == "dimension") {
-                        Object.keys(item.dimension).forEach((itemDimensions, index) => {
-                            queryUpdate = {
-                                ...queryUpdate,
-                                $unset: {
-                                    ...queryUpdate.$unset,
-                                    [key + `.${itemDimensions}`]: item[itemVariations][itemDimensions]
-                                }
-                            }
-
-                        })
-                        return
-                    }
-                    queryUpdate = {
-                        ...queryUpdate,
-                        $unset: {
-                            ...queryUpdate.$unset,
-                            [key]: item[itemVariations]
-                        }
-                    };
-                    console.log("asdfasfd");
-
-                    return
-                }
-
-
-            })
-            if (Object.keys(item).length == 1 && Object.keys(item).includes("_id"))
-                queryUpdate = {
-                    ...queryUpdate,
-                    $pull: {
-                        variations: { _id: _id }
-                    }
-                };
-
-            arrayFilter.push({ [keyArr + "._id"]: _id })
-
-        })
+        const variationId = new mongoose.Types.ObjectId()
+        const queryUpdate = {
+            $push: {
+                // _id:new mongoose.Types.ObjectId() ,
+                variations: addFields
+            }
+        }
+        return { queryUpdate: queryUpdate, _id: variationId }
     } catch (error) {
         console.log("ERROR generateQueryVariations: " + error);
+        return {}
     }
 
-    console.log(JSON.stringify(queryUpdate), JSON.stringify(arrayFilter), JSON.stringify(updateFields));
 
-    return { query: queryUpdate, filter: arrayFilter }
+
+
+}
+const generateDeleteQueryVariations = (updateFields) => {
+
+    try {
+
+        const _id = updateFields.variation._id;
+        let queryUpdate = {
+            $pull: {
+                variations: { _id: new mongoose.Types.ObjectId(_id) }
+            }
+        }
+
+        return queryUpdate
+
+    } catch (error) {
+        console.log("ERROR generateQueryVariations: " + error);
+        return {}
+    }
+
+
 
 }
 
@@ -325,7 +280,7 @@ function generateMinusQuantityQuery(item) {
                     $inc: {
                         [key]: -item["quantity"],
                         sold: +item["quantity"],
-                        stock:-item["quantity"],
+                        stock: -item["quantity"],
                     }
                 };
             }
@@ -358,7 +313,7 @@ function generateReturnQuantityQuery(item) {
                 queryUpdate = {
                     $inc: {
                         [key]: +item["quantity"],
-                        stock:+item["quantity"],
+                        stock: +item["quantity"],
                         sold: -item["quantity"]
                     }
                 };
@@ -373,24 +328,7 @@ function generateReturnQuantityQuery(item) {
 
     return { query: queryUpdate, filter: arrayFilter };
 }
-const deleteAttributesInProduct = async (productID, updateFields) => {
-    try {
-        const checkNecessaryAttribute = await productModel.findOne({
-            _id: productID,
-            price: { $exists: true },
-            stock: { $exists: true },
-            image: { $exists: true },
-        })
-        if (!checkNecessaryAttribute)
-            throw new CustomError("No required attributes to delete !! \n You must fill in the product's detail before delete ")
-        const deleteData = generateDeleteQueryVariations(updateFields)
-        const productUpdated = await productModel.updateOne({ _id: productID }, deleteData.query, { arrayFilters: deleteData.filter, new: true })
-        return productUpdated;
-    } catch (error) {
-        console.log("ERROR deleteAttributesInProduct (SERVICE): " + error);
-        return false
-    }
-}
+
 
 const updateMinusQuantityAndSoldInQuery = async (updateFields) => {
     try {
@@ -465,13 +403,59 @@ const deleteProduct = async (productIDs) => {
         return false;
     }
 }
+const deleteVariation = async (productID, updateFields) => {
+    try {
+        const checkNecessaryAttribute = await productModel.findOne({
+            _id: productID,
+            price: { $exists: true },
+            stock: { $exists: true },
+            images: { $exists: true },
+        })
 
+        if (!checkNecessaryAttribute)
+            throw new CustomError("No required attributes to delete !! \n You must fill in the product's detail before delete ")
+        const deleteQuery = generateDeleteQueryVariations(updateFields)
+        const productUpdated = await productModel.findByIdAndUpdate({ _id: productID }, deleteQuery, { new: true })
+        const imageId = updateFields.variation.subImage?.id
+     ;
+        
+        if (imageId)
+            await deleteImages([imageId])
+        return productUpdated;
+    } catch (error) {
+        console.log("ERROR deleteAttributesInProduct (SERVICE): " + error);
+        return false
+    }
+}
+const updateVariation = async (productId, updateFields) => {
+    try {
+        const updatedVariationQuery = generateUpdateQuery(updateFields)
+        const updateQuery = productModel.findByIdAndUpdate(productId, updatedVariationQuery.query, { arrayFilters: updatedVariationQuery.filter })
+        return updateQuery
+    } catch (error) {
+
+    }
+}
+const addNewVariation = async (productId, addFields) => {
+    try {
+        console.log("addNewVariation   ", productId);
+
+        const newVariationQuery = generateAddQueryVariations(addFields)
+        const updateQuery = await productModel.findOneAndUpdate({ _id: productId }, newVariationQuery.queryUpdate, { new: true })
+
+        return { updateQuery, _id: newVariationQuery._id }
+    } catch (error) {
+        console.log("addNewVariation", error);
+        return false
+
+    }
+}
 const updateProduct = async (productID, updateFileds) => {
     try {
         let productUpdated = false;
 
         productUpdated = await productModel.findByIdAndUpdate(productID, updateFileds, { new: true })
-        console.timeEnd("QUERY UPDATE>>>")
+
         return !productUpdated ?
             console.log('Product not found') : productUpdated
     } catch (error) {
@@ -517,7 +501,7 @@ const searchProducts = async (req) => {
             if (mainCategories) {
                 categoryConditions.push({ 'category.mainCategory': mainCategories });
 
-                if (subCategories.length > 0&&subCategories[0].length>0) {
+                if (subCategories.length > 0 && subCategories[0].length > 0) {
                     categoryConditions.push({ 'category.subCategory': { $in: subCategories } });
                 }
             }
@@ -617,6 +601,6 @@ const getProductListByStandard = async (type) => {
         console.log('searchProducts Error(Service): ' + error)
     }
 }
-module.exports = {getStockManyProducts,getStockProduct,getProductListByStandard, checkProductVariationStock, findPriceInProducts, updateMinusQuantityAndSoldInQuery,updatePlusQuantityAndSoldInQuery, deleteProduct, addProduct, deleteAttributesInProduct, getProductsByPageByCategories, getAllProduct, getProductsByPage, updateProduct, getProductByID, searchProducts }
+module.exports = { getStockManyProducts, getStockProduct, getProductListByStandard, checkProductVariationStock, findPriceInProducts, updateMinusQuantityAndSoldInQuery, updatePlusQuantityAndSoldInQuery, deleteProduct, addProduct, deleteVariation, addNewVariation, updateVariation, getProductsByPageByCategories, getAllProduct, getProductsByPage, updateProduct, getProductByID, searchProducts }
 
 
