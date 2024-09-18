@@ -22,35 +22,35 @@ const hostAddingImageToCDN = async (data, req, pathR) => {
         }
         if (req.files['subImages']) {
             const variationFiles = req.files['subImages'];
-        
-            const uploadPromises = variationFiles.map((file, index) => {
-                return new Promise(async (resolve, reject) => {
-                    try {
-                        if (data.variations[index].image == file.filename) {
-                            const binaryData = fs.readFileSync(file.path);
-                            const base64 = binaryData.toString('base64');
-                            const image = await uploadImage(base64, pathR);
-                            data.variations[index].subImage = image;
-                            delete data.variations[index].image;
-                            fs.unlinkSync(file.path);
-                            console.log("ADDING ", data.variations[index]);
-                        }
-                        resolve(); 
-                    } catch (error) {
-                        reject(error); 
+
+            await Promise.all(variationFiles.map(async(file, index) => {
+                try {
+                    if (data.variations[index].image == file.filename) {
+                        const binaryData = fs.readFileSync(file.path);
+                        const base64 = binaryData.toString('base64');
+                        const image = await uploadImage(base64, pathR);
+                        data.variations[index].subImage = image;
+                        delete data.variations[index].image;
+                        fs.unlinkSync(file.path);
+                        console.log("ADDING ", data.variations[index]);
                     }
-                });
-            });
-        
-           
-           
+
+                } catch (error) {
+
+                }
+
+            })
+            )
+
+
+
         }
         if (req.files['subImage']) {
             await new Promise(async (resolve, reject) => {
                 try {
-                   const file = req.files['subImage'][0]
+                    const file = req.files['subImage'][0]
 
-                   if (data.image == file.filename) {
+                    if (data.image == file.filename) {
 
                         const binaryData = fs.readFileSync(file.path);
                         const base64 = binaryData.toString('base64');
@@ -60,14 +60,14 @@ const hostAddingImageToCDN = async (data, req, pathR) => {
                         fs.unlinkSync(file.path);
                         console.log("ADDING ", data);
                     }
-                    resolve(); 
+                    resolve();
                 } catch (error) {
-                    reject(error); 
+                    reject(error);
                 }
             });
         }
         return data;
-        
+
     } catch (error) {
         console.log("hostAddingImageToCDN: " + error);
         return null
@@ -93,23 +93,23 @@ const hostUpdateImageToCDN = async (data, req, pathR) => {
                         }
                     })
                 } else {
-                    console.log("ID IMAGE: ",data.image.id);
-                    
-                    const item= data.image
-                    const set = new Set( Object.keys(item))
+                    console.log("ID IMAGE: ", data.image.id);
+
+                    const item = data.image
+                    const set = new Set(Object.keys(item))
                     if (set.has("id")) {
                         await deleteImages([item.id])
                     }
                     if (set.has("url") && !regex.test(item["url"])) {
                         const binaryData = fs.readFileSync(file.path);
                         const base64 = binaryData.toString('base64')
-                       
-                        
+
+
                         const result = await uploadImage(base64, pathR)
                         fs.unlinkSync(file.path);
                         data.image = result;
                     }
-                 
+
                 }
 
             }));
@@ -118,47 +118,47 @@ const hostUpdateImageToCDN = async (data, req, pathR) => {
         // subImages
         if (req.files['subImages']) {
             const variationFiles = req.files['subImages'];
-            await Promise.all( 
+            await Promise.all(
                 variationFiles.forEach(async (file, index) => {
-                if (typeof data.variations !== "undefined")
-                    data.variations.forEach(async (item, index) => {
-                        const keys = Object.keys(item?.subImage);
-                        let set = new Set(keys)
-                        if (set.has('id'))
-                            await deleteImages([item.id])
-                        if (set.has('url') && !regex.test(item["url"])) {
-                            const binaryData = fs.readFileSync(file.path);
-                            const base64 = binaryData.toString('base64')
-                            const image = await uploadImage(base64, pathR)
-                            fs.unlinkSync(file.path)
-                            item.subImage = image
-                        }
-                    })
-                else if (typeof data.subCategory !== "undefined")
-                    data.subCategory.forEach(async (item, index) => {
-                        if (typeof item.subImage == 'undefined') return;
-                        const keys = Object.keys();
-                        let set = new Set(keys)
-                        if (set.has('id'))
-                            await deleteImages([item.id])
-                        if (set.has('url') && !regex.test(item["url"])) {
-                            const binaryData = fs.readFileSync(file.path);
-                            const base64 = binaryData.toString('base64')
-                            const image = await uploadImage(base64, pathR)
-                            fs.unlinkSync(file.path)
-                            item.subImage = image
-                        }
-                    })
-            }));
-        }   
-        
+                    if (typeof data.variations !== "undefined")
+                        data.variations.forEach(async (item, index) => {
+                            const keys = Object.keys(item?.subImage);
+                            let set = new Set(keys)
+                            if (set.has('id'))
+                                await deleteImages([item.id])
+                            if (set.has('url') && !regex.test(item["url"])) {
+                                const binaryData = fs.readFileSync(file.path);
+                                const base64 = binaryData.toString('base64')
+                                const image = await uploadImage(base64, pathR)
+                                fs.unlinkSync(file.path)
+                                item.subImage = image
+                            }
+                        })
+                    else if (typeof data.subCategory !== "undefined")
+                        data.subCategory.forEach(async (item, index) => {
+                            if (typeof item.subImage == 'undefined') return;
+                            const keys = Object.keys();
+                            let set = new Set(keys)
+                            if (set.has('id'))
+                                await deleteImages([item.id])
+                            if (set.has('url') && !regex.test(item["url"])) {
+                                const binaryData = fs.readFileSync(file.path);
+                                const base64 = binaryData.toString('base64')
+                                const image = await uploadImage(base64, pathR)
+                                fs.unlinkSync(file.path)
+                                item.subImage = image
+                            }
+                        })
+                }));
+        }
+
         if (req.files['subImage']) {
             await new Promise(async (resolve, reject) => {
-                try {                    
-                    const file= req.files['subImage'][0]
-                    console.log("UPDATE SUBIMAGE",data.variation.image , file.filename);
+                try {
+                    const file = req.files['subImage'][0]
+                    console.log("UPDATE SUBIMAGE", data.variation.image, file.filename);
 
-                   
+
                     if (data.variation.image.url == file.filename) {
                         await deleteImages([data.variation.image.id])
                         const binaryData = fs.readFileSync(file.path);
@@ -169,9 +169,9 @@ const hostUpdateImageToCDN = async (data, req, pathR) => {
                         fs.unlinkSync(file.path);
                         console.log("UPDATE ", data);
                     }
-                    resolve(); 
+                    resolve();
                 } catch (error) {
-                    reject(error); 
+                    reject(error);
                 }
             });
         }

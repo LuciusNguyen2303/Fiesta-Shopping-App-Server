@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Verification Code</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-color: #f7f7f7;
+      flex-direction: column;
+    }
+    .verification-code {
+      font-size: 36px;
+      font-weight: bold;
+      color: #333;
+      padding: 20px;
+      border: 2px dashed #007BFF;
+      border-radius: 10px;
+      background-color: #e9f4ff;
+      margin-bottom: 20px;
+    }
+    .thank-you {
+      font-size: 18px;
+      color: #555;
+      text-align: center;
+    }
+    .thank-you strong {
+      color: #007BFF;
+    }
+  </style>
+</head>
+<body>
+
+<div class="verification-code">
+  Your Code: {{code}}
+</div>
+
+<div class="thank-you">
+  <p>Thank you for using <strong>FiestaShopping</strong>! We greatly appreciate your support.</p>
+  <p>Please enter the verification code above to complete the process.</p>
+</div>
+
+</body>
+</html>
