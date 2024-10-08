@@ -14,8 +14,8 @@ const addCategory = async (
         if (Object.keys(data).includes("subCategory")) {
             let subCategory = data.subCategory
             if (Array.isArray(subCategory) && subCategory.length > 0) {
-            //    
-             console.time("image")
+                //    
+                console.time("image")
                 const subCategoryPromises = subCategory.map(async (item) => {
 
                     const image = await uploadImage(item.image, "Categories")
@@ -81,16 +81,16 @@ const generateUpdateCategoryQuery = async (updateData) => {
                             }
                         };
                     if (typeof item.subImage !== 'undefined') {
-                      
-                            queryUpdate = {
-                                ...queryUpdate,
-                                $set: {
-                                    ...queryUpdate.$set,
-                                    [key + "subImage"]: item.subImage
-                                }
-                            };
-                        }
-                    
+
+                        queryUpdate = {
+                            ...queryUpdate,
+                            $set: {
+                                ...queryUpdate.$set,
+                                [key + "subImage"]: item.subImage
+                            }
+                        };
+                    }
+
 
                     arrayFilter.push({ [`${key}._id`]: item._id });
 
@@ -159,7 +159,7 @@ const generateDeleteSubCategoryQuery = async (data) => {
                                 [key + "_id"]: item._id
                             }
                         };
-                  
+
                     arrayFilter.push({ [`${key}._id`]: item._id });
 
                 })
@@ -201,7 +201,7 @@ const deleteAnItemSubcategory = async (id, data) => {
         const category = await categoryModel.findOne({ _id: id })
         if (category) {
             await deleteImageinSubCategory(data)
-            const query=await generateDeleteSubCategoryQuery(data)
+            const query = await generateDeleteSubCategoryQuery(data)
             const result = await categoryModel.findByIdAndDelete(id)
             if (result)
                 return result
@@ -245,7 +245,7 @@ const getCategoryByID = async (id) => {
         console.log(`get category by id error (Service)${error}`);
     }
 }
-module.exports = { addCategory, getAllCategory, editCategory,deleteCategory, getCategoryByID }
+module.exports = { addCategory, getAllCategory, editCategory, deleteCategory, getCategoryByID }
 
 
 

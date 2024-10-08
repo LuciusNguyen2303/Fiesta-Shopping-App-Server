@@ -8,11 +8,10 @@ const hostAddingImageToCDN = async (data, req, pathR) => {
     try {
         if (req.files['images']) {
             const binaryImagesPromises = req.files['images'].map(async (file) => {
-
+                console.log(file);
                 const binaryData = fs.readFileSync(file.path);
                 const base64 = binaryData.toString('base64')
                 const result = await uploadImage(base64, pathR)
-
                 fs.unlinkSync(file.path)
                 return result
             });
@@ -49,7 +48,8 @@ const hostAddingImageToCDN = async (data, req, pathR) => {
             await new Promise(async (resolve, reject) => {
                 try {
                     const file = req.files['subImage'][0]
-
+                   
+                    
                     if (data.image == file.filename) {
 
                         const binaryData = fs.readFileSync(file.path);

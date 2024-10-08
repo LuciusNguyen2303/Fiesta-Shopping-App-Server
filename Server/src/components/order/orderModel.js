@@ -4,15 +4,15 @@ const ObjectId = mongoose.Types.ObjectId;
 const productinOrder = Schema({
     // price: { type: Number, required: true },
     quantity: { type: Number, required: true },
-    productId: { type: ObjectId, required: true,ref:'products' },
+    productId: { type: ObjectId, required: true, ref: 'products' },
     variationId: { type: ObjectId },
 })
 const ordersSchema = new Schema({
     userId: { type: String, required: true },
     payments: { type: Object, required: true },
     shipping: { type: Object, required: true },
-    modifiedOn: { type: Date, default: Date.now() },
-    isHidden:{type:Boolean, default:false},
+    modifiedOn: { type: Date, default: Date.now },
+    isHidden: { type: Boolean, default: false },
     status: { type: String, enum: ['Pending', 'Processing', 'Shipping', 'Delivered', 'Cancelled', 'Returned'], default: 'Pending' },
     products: [productinOrder]
 })
